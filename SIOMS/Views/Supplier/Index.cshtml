@@ -1,0 +1,251 @@
+@model IEnumerable<SIOMS.Models.Supplier>
+@{
+    ViewData["Title"] = "Suppliers";
+    ViewData["Subtitle"] = "Manage your suppliers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <!-- Success/Error Messages -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <form method="get" asp-controller="Supplier" asp-action="Index" class="row g-3">
+                        <div class="col-auto">
+                            <input type="text" name="search" class="form-control" placeholder="Search suppliers..."
+                                   value="@ViewBag.SearchTerm">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                            @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                            {
+                                <a asp-controller="Supplier" asp-action="Index" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-redo"></i> Reset
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a asp-controller="Supplier" asp-action="Create" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add New Supplier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suppliers Table -->
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Supplier</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                                <th>Orders</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var supplier in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center" style="gap:12px;">
+                                            <i class="fas fa-building text-primary"
+                                               style="font-size:1rem;width:20px;text-align:center;"></i>
+                                            <div>
+                                                <strong>@supplier.Name</strong>
+                                                @if (!string.IsNullOrEmpty(supplier.City))
+                                                {
+                                                    <br>
+                                                    <small class="text-muted">@supplier.City</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(supplier.Phone))
+                                        {
+                                            <a href="tel:@supplier.Phone" class="text-decoration-none">
+                                                @supplier.Phone
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(supplier.Email))
+                                        {
+                                            <a href="mailto:@supplier.Email" class="text-decoration-none">
+                                                @supplier.Email
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(supplier.Address))
+                                        {
+                                            <span class="text-truncate-2">@supplier.Address</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">@(supplier.PurchaseOrders?.Count ?? 0)</span>
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input status-toggle" type="checkbox" data-id="@supplier.Id"
+                                            @(supplier.IsActive ? "checked" : "")>
+                                            <label class="form-check-label">
+                                                @(supplier.IsActive ? "Active" : "Inactive")
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Supplier" asp-action="Details" asp-route-id="@supplier.Id"
+                                               class="btn btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-controller="Supplier" asp-action="Edit" asp-route-id="@supplier.Id"
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@supplier.Id"
+                                                  method="post" class="delete-confirm-form d-inline"
+                                                  data-message="Are you sure you want to delete '@supplier.Name'? This action cannot be undone.">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-truck-loading fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No suppliers found</h5>
+                    <p class="text-muted mb-4">Get started by adding your first supplier.</p>
+                    <a asp-controller="Supplier" asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Add First Supplier
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Status toggle
+            document.querySelectorAll('.status-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function () {
+                    const supplierId = this.dataset.id;
+                    const isActive = this.checked;
+
+                    // Get anti-forgery token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                    fetch('@Url.Action("ToggleStatus", "Supplier")/' + supplierId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token || ''
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update label
+                                const label = this.nextElementSibling;
+                                if (label) {
+                                    label.textContent = data.isActive ? 'Active' : 'Inactive';
+                                }
+
+                                // Show notification
+                                showNotification(data.message, 'success');
+                            } else {
+                                this.checked = !isActive;
+                                showNotification(data.message, 'danger');
+                            }
+                        })
+                        .catch(error => {
+                            this.checked = !isActive;
+                            showNotification('Error updating status', 'danger');
+                        });
+                });
+            });
+
+            // Auto-dismiss alerts
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+
+            // Notification function
+            function showNotification(message, type) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+                alertDiv.style.zIndex = '9999';
+                alertDiv.innerHTML = `
+                        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                document.body.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.parentNode.removeChild(alertDiv);
+                    }
+                }, 5000);
+            }
+        });
+    </script>
+}

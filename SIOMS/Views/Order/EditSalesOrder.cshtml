@@ -1,0 +1,597 @@
+@model SIOMS.Models.SalesOrder
+@{
+    ViewData["Title"] = "Edit Sales Order";
+    ViewData["Subtitle"] = "Update sales order information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/admin/css/quick-create.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css" />
+    <style>
+        .iti {
+            width: 100%;
+        }
+        .iti__flag-container {
+            z-index: 10;
+        }
+        .phone-input-wrapper {
+            position: relative;
+        }
+        .phone-feedback.text-danger {
+            color: #dc3545 !important;
+        }
+        .phone-feedback.text-success {
+            color: #198754 !important;
+        }
+    </style>
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Edit Sales Order</h4>
+                </div>
+                <div class="card-body">
+                    @{
+                        bool isSalesOrderLocked = Model.Status == "Cancelled" ||
+                            (Model.Status == "Completed" && Model.PaymentStatus == "Paid");
+                        bool isSalesOrderDeliveredButUnpaid = Model.Status == "Completed" && Model.PaymentStatus != "Paid";
+                    }
+                    @if (isSalesOrderLocked)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @if (Model.Status == "Cancelled")
+                            {
+                                <span>This order is <strong>Cancelled</strong> and cannot be edited.</span>
+                            }
+                            else
+                            {
+                                <span>This order is <strong>Completed</strong> and fully <strong>Paid</strong>, so it can no longer be edited.</span>
+                            }
+                        </div>
+                    }
+                    else if (isSalesOrderDeliveredButUnpaid)
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This order is already <strong>Completed</strong> (delivered), so its details/items can no longer be changed.
+                            Only the <strong>Payment</strong> below can still be recorded until it is fully Paid.
+                        </div>
+                    }
+                    else
+                    {
+                        <form id="editSalesOrderForm" asp-controller="Order" asp-action="EditSalesOrder" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="Id" />
+                            <input type="hidden" asp-for="CreatedAt" />
+                            <input type="hidden" asp-for="OrderNumber" />
+                            
+                            <div class="row">
+                                <!-- Left Column - Order Details -->
+                                <div class="col-lg-4">
+                                    <div class="card mb-4">
+                                        <div class="card-header">
+                                            <h6 class="card-title mb-0">Order Details</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <!-- ✅ Customer - REQUIRED -->
+                                            <div class="mb-3">
+                                                <label asp-for="CustomerId" class="form-label">Customer *</label>
+                                                <div class="qc-select-wrapper" data-quick-endpoint="@Url.Action("QuickCreate", "Customer")" data-quick-label="Customer"
+                                                     data-secondary-field="phone" data-secondary-label="Contact Number" data-secondary-type="tel" data-secondary-required="false">
+                                                    <select asp-for="CustomerId" class="form-select qc-native-select" required>
+                                                        <option value="">Select Customer</option>
+                                                        @foreach (var customer in ViewBag.Customers)
+                                                        {
+                                                            <option value="@customer.Id">@customer.Name</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                                            </div>
+                                            
+                                            <!-- ✅ Supplier - OPTIONAL -->
+                                            <div class="mb-3">
+                                                <label asp-for="SupplierId" class="form-label">Supplier (Optional)</label>
+                                                <div class="qc-select-wrapper" data-quick-endpoint="@Url.Action("QuickCreate", "Supplier")" data-quick-label="Supplier"
+                                                     data-secondary-field="phone" data-secondary-label="Contact Number" data-secondary-type="tel" data-secondary-required="true">
+                                                    <select asp-for="SupplierId" class="form-select qc-native-select">
+                                                        <option value="">Select Supplier (Optional)</option>
+                                                        @foreach (var supplier in ViewBag.Suppliers)
+                                                        {
+                                                            <option value="@supplier.Id">@supplier.Name</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label asp-for="OrderDate" class="form-label">Order Date *</label>
+                                                <input asp-for="OrderDate" type="date" class="form-control" required>
+                                                <span asp-validation-for="OrderDate" class="text-danger small"></span>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label asp-for="DueDate" class="form-label">Payment Due Date (Optional)</label>
+                                                <input asp-for="DueDate" type="date" class="form-control">
+                                                <span asp-validation-for="DueDate" class="text-danger small"></span>
+                                                <div id="dueDateError" class="text-danger small mt-1" style="display:none;">
+                                                    Due Date can't be before Order Date.
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label asp-for="Status" class="form-label">Status</label>
+                                                <select asp-for="Status" class="form-select">
+                                                    <option value="Processing">Processing</option>
+                                                    <option value="Completed">Completed</option>
+                                                    <option value="Cancelled">Cancelled</option>
+                                                </select>
+                                                <span asp-validation-for="Status" class="text-danger small"></span>
+                                            </div>
+                                            
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label asp-for="DiscountPercentage" class="form-label">Discount %</label>
+                                                    <input asp-for="DiscountPercentage" type="number" class="form-control" min="0" max="100" step="0.01">
+                                                    <span asp-validation-for="DiscountPercentage" class="text-danger small"></span>
+                                                </div>
+                                                
+                                                <div class="col-md-6 mb-3">
+                                                    <label asp-for="TaxAmount" class="form-label">Tax Amount</label>
+                                                    <input asp-for="TaxAmount" type="number" class="form-control" min="0" step="0.01">
+                                                    <span asp-validation-for="TaxAmount" class="text-danger small"></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label asp-for="Notes" class="form-label">Notes</label>
+                                                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                                                <span asp-validation-for="Notes" class="text-danger small"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Order Summary -->
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="card-title mb-0">Order Summary</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Total Items:</span>
+                                                <span id="totalItems" class="fw-bold">@(Model.Items?.Count() ?? 0)</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Subtotal:</span>
+                                                <span id="subtotal" class="fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(Model.TotalAmount)</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Discount (<span id="discountPercent">@Model.DiscountPercentage</span>%):</span>
+                                                <span id="discountAmount" class="fw-bold text-danger">-@(SIOMS.Helpers.CurrencyFormatter.Format(Model.TotalAmount * Model.DiscountPercentage / 100))</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span>Tax:</span>
+                                                <span id="taxAmount" class="fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(Model.TaxAmount)</span>
+                                            </div>
+                                            <hr>
+                                            <div class="d-flex justify-content-between">
+                                                <h6>Grand Total:</h6>
+                                                <h5 id="grandTotal" class="text-success">@SIOMS.Helpers.CurrencyFormatter.Format(Model.GrandTotal)</h5>
+                                            </div>
+                                            <input type="hidden" id="totalAmount" name="TotalAmount" value="@Model.TotalAmount" />
+                                            <input type="hidden" id="grandTotalValue" name="GrandTotal" value="@Model.GrandTotal" />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right Column - Order Items -->
+                                <div class="col-lg-8">
+                                    <div class="card">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="card-title mb-0">Order Items</h6>
+                                            <button type="button" class="btn btn-sm btn-primary" id="addItemBtn">
+                                                <i class="fas fa-plus me-1"></i> Add Item
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="orderItemsContainer">
+                                                @if (Model.Items != null && Model.Items.Any())
+                                                {
+                                                    var index = 0;
+                                                    foreach (var item in Model.Items)
+                                                    {
+                                                        <div class="order-item card mb-3" data-index="@index">
+                                                            <div class="card-body">
+                                                                <div class="row align-items-center">
+                                                                    <div class="col-md-4 mb-3 mb-md-0">
+                                                                        <label class="form-label">Product *</label>
+                                                                        <select class="form-select product-select" 
+                                                                                name="items[@index].ProductId" required>
+                                                                            <option value="">Select Product</option>
+                                                                            @foreach (var product in ViewBag.Products)
+                                                                            {
+                                                                                <option value="@product.Id" 
+                                                                                        data-price="@product.Price" 
+                                                                                        data-stock="@product.StockQuantity"
+                                                                                        selected="@(product.Id == item.ProductId)">
+                                                                                    @product.Name (Stock: @product.StockQuantity)
+                                                                                </option>
+                                                                            }
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-md-2 mb-3 mb-md-0">
+                                                                        <label class="form-label">Quantity *</label>
+                                                                        <input type="number" class="form-control quantity-input" 
+                                                                               name="items[@index].Quantity" min="1" 
+                                                                               value="@item.Quantity" required>
+                                                                        <small class="text-muted stock-info">Stock: @item.Product?.StockQuantity</small>
+                                                                    </div>
+                                                                    <div class="col-md-2 mb-3 mb-md-0">
+                                                                        <label class="form-label">Unit Price</label>
+                                                                        <!-- ✅ Read-Only - Price comes from Product -->
+                                                                        <input type="number" class="form-control price-input" 
+                                                                               name="items[@index].UnitPrice" min="0" step="0.01" 
+                                                                               value="@item.UnitPrice" readonly>
+                                                                    </div>
+                                                                    <!-- Total - FIXED: No currency symbol -->
+                                                                    <div class="col-md-2 mb-3 mb-md-0">
+                                                                        <label class="form-label">Total</label>
+                                                                        <input type="text" class="form-control total-price" 
+                                                                               readonly value="@item.TotalPrice.ToString("0.00")" style="font-weight:600; background:#f0f7ff; text-align:right;">
+                                                                    </div>
+                                                                    <div class="col-md-2 text-center">
+                                                                        <button type="button" class="btn btn-outline-danger remove-item-btn">
+                                                                            <i class="fas fa-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                    <input type="hidden" name="items[@index].Id" value="@item.Id" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        index++;
+                                                    }
+                                                }
+                                            </div>
+                                            <div id="noItemsMessage" class="text-center py-5" 
+                                                 style="@(Model.Items != null && Model.Items.Any() ? "display:none;" : "")">
+                                                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                                <h5 class="text-muted">No items added</h5>
+                                                <p class="text-muted">Click "Add Item" to start adding products.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a asp-controller="Order" asp-action="SalesOrderDetails" asp-route-id="@Model.Id" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i> Update Sales Order
+                                </button>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <!-- Payment / Credit (Phase 6) -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">Payment</h6>
+                    @{
+                        var soStatusBadge = Model.PaymentStatus switch
+                        {
+                            "Paid" => "bg-success",
+                            "Partial" => "bg-warning text-dark",
+                            _ => "bg-danger"
+                        };
+                    }
+                    <span class="badge @soStatusBadge">@Model.PaymentStatus</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <small class="text-muted d-block">Grand Total</small>
+                            <strong>@SIOMS.Helpers.CurrencyFormatter.Format(Model.GrandTotal)</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Paid Amount</small>
+                            <strong class="text-success">@SIOMS.Helpers.CurrencyFormatter.Format(Model.PaidAmount)</strong>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted d-block">Remaining</small>
+                            <strong class="text-danger">@SIOMS.Helpers.CurrencyFormatter.Format(Model.RemainingAmount)</strong>
+                        </div>
+                    </div>
+
+                    @if (Model.RemainingAmount > 0 && Model.Status != "Cancelled")
+                    {
+                        <form method="post" asp-controller="Order" asp-action="RecordSalesPayment" class="row g-2 mb-3">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.Id" />
+                            <div class="col-md-4">
+                                <input type="number" name="amount" class="form-control" placeholder="Amount" min="0.01" max="@Model.RemainingAmount" step="0.01" required>
+                            </div>
+                            <div class="col-md-5">
+                                <input type="text" name="notes" class="form-control" placeholder="Notes (optional)">
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-money-bill me-1"></i> Record Payment
+                                </button>
+                            </div>
+                        </form>
+                    }
+
+                    @if (Model.Payments != null && Model.Payments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th class="text-end">Amount</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.Payments.OrderByDescending(p => p.PaymentDate))
+                                    {
+                                        <tr>
+                                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                            <td class="text-end">@SIOMS.Helpers.CurrencyFormatter.Format(payment.Amount)</td>
+                                            <td>@payment.Notes</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No payments recorded yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Item Template (Hidden) - FIXED: No currency symbol in Total field -->
+<div id="itemTemplate" class="d-none">
+    <div class="order-item card mb-3" data-index="{index}">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4 mb-3 mb-md-0">
+                    <label class="form-label">Product *</label>
+                    <select class="form-select product-select" name="items[{index}].ProductId" required>
+                        <option value="">Select Product</option>
+                        @foreach (var product in ViewBag.Products)
+                        {
+                            <option value="@product.Id" data-price="@product.Price" data-stock="@product.StockQuantity">
+                                @product.Name (Stock: @product.StockQuantity)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3 mb-md-0">
+                    <label class="form-label">Quantity *</label>
+                    <input type="number" class="form-control quantity-input" 
+                           name="items[{index}].Quantity" min="1" value="1" required>
+                    <small class="text-muted stock-info">Stock: 0</small>
+                </div>
+                <div class="col-md-2 mb-3 mb-md-0">
+                    <label class="form-label">Unit Price</label>
+                    <!-- ✅ Read-Only - Price comes from Product -->
+                    <input type="number" class="form-control price-input" 
+                           name="items[{index}].UnitPrice" min="0" step="0.01" value="0" readonly>
+                </div>
+                <!-- Total - FIXED: No input-group, just plain input -->
+                <div class="col-md-2 mb-3 mb-md-0">
+                    <label class="form-label">Total</label>
+                    <input type="text" class="form-control total-price" readonly value="0.00" style="font-weight:600; background:#f0f7ff; text-align:right;">
+                </div>
+                <div class="col-md-2 text-center">
+                    <button type="button" class="btn btn-outline-danger remove-item-btn">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+    <script src="~/admin/js/quick-create.js" asp-append-version="true"></script>
+    <script>
+        const currencySymbol = '@SIOMS.Helpers.CurrencyFormatter.Symbol';
+    </script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let itemIndex = @(Model.Items?.Count() ?? 0);
+            const itemsContainer = document.getElementById('orderItemsContainer');
+            const noItemsMessage = document.getElementById('noItemsMessage');
+            const itemTemplate = document.getElementById('itemTemplate').innerHTML;
+            const form = document.getElementById('editSalesOrderForm');
+            const discountInput = document.getElementById('DiscountPercentage');
+            const taxInput = document.getElementById('TaxAmount');
+
+            // Due Date can't be before Order Date
+            const orderDateInput = document.getElementById('OrderDate');
+            const dueDateInput = document.getElementById('DueDate');
+            const dueDateError = document.getElementById('dueDateError');
+
+            function syncDueDateMin() {
+                if (orderDateInput.value) {
+                    dueDateInput.min = orderDateInput.value;
+                }
+                dueDateError.style.display = 'none';
+                dueDateInput.classList.remove('is-invalid');
+            }
+
+            if (orderDateInput && dueDateInput) {
+                syncDueDateMin();
+                orderDateInput.addEventListener('change', syncDueDateMin);
+
+                form.addEventListener('submit', function(e) {
+                    if (orderDateInput.value && dueDateInput.value && dueDateInput.value < orderDateInput.value) {
+                        e.preventDefault();
+                        dueDateError.style.display = 'block';
+                        dueDateInput.classList.add('is-invalid');
+                        dueDateInput.focus();
+                    }
+                });
+            }
+            
+            document.getElementById('addItemBtn').addEventListener('click', function() {
+                addNewItem();
+            });
+            
+            [discountInput, taxInput].forEach(input => {
+                input.addEventListener('input', updateSummary);
+            });
+            
+            // ✅ FIX: Do NOT auto-add item on edit page
+            document.querySelectorAll('.order-item').forEach(item => {
+                setupItemEvents(item);
+            });
+            
+            function addNewItem() {
+                noItemsMessage.style.display = 'none';
+                
+                const newItem = itemTemplate.replace(/{index}/g, itemIndex);
+                const itemElement = document.createElement('div');
+                itemElement.innerHTML = newItem;
+                itemsContainer.appendChild(itemElement);
+                
+                const newItemElement = itemsContainer.lastElementChild;
+                setupItemEvents(newItemElement);
+                
+                itemIndex++;
+                updateSummary();
+            }
+            
+            function setupItemEvents(itemElement) {
+                const productSelect = itemElement.querySelector('.product-select');
+                const priceInput = itemElement.querySelector('.price-input');
+                const quantityInput = itemElement.querySelector('.quantity-input');
+                const stockInfo = itemElement.querySelector('.stock-info');
+                
+                productSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.value && selectedOption.dataset.price) {
+                        priceInput.value = parseFloat(selectedOption.dataset.price).toFixed(2);
+                        stockInfo.textContent = 'Stock: ' + selectedOption.dataset.stock;
+                        calculateItemTotal(itemElement);
+                        updateSummary();
+                    } else {
+                        stockInfo.textContent = 'Stock: 0';
+                    }
+                });
+                
+                quantityInput.addEventListener('input', function() {
+                    calculateItemTotal(itemElement);
+                    updateSummary();
+                });
+                
+                const removeBtn = itemElement.querySelector('.remove-item-btn');
+                removeBtn.addEventListener('click', function() {
+                    itemElement.remove();
+                    updateSummary();
+                    if (itemsContainer.children.length === 0) {
+                        noItemsMessage.style.display = 'block';
+                    }
+                });
+                
+                calculateItemTotal(itemElement);
+            }
+            
+            // ✅ FIXED: No currency symbol in total display
+            function calculateItemTotal(itemElement) {
+                const quantity = parseFloat(itemElement.querySelector('.quantity-input').value) || 0;
+                const price = parseFloat(itemElement.querySelector('.price-input').value) || 0;
+                const total = quantity * price;
+                itemElement.querySelector('.total-price').value = total.toFixed(2);
+            }
+            
+            function updateSummary() {
+                let totalItems = 0;
+                let subtotal = 0;
+                
+                document.querySelectorAll('.order-item').forEach(item => {
+                    const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
+                    const price = parseFloat(item.querySelector('.price-input').value) || 0;
+                    totalItems += quantity;
+                    subtotal += quantity * price;
+                });
+                
+                const discountPercent = parseFloat(discountInput.value) || 0;
+                const discountAmount = subtotal * (discountPercent / 100);
+                const taxAmount = parseFloat(taxInput.value) || 0;
+                const totalAmount = subtotal - discountAmount;
+                const grandTotal = totalAmount + taxAmount;
+                
+                document.getElementById('totalItems').textContent = totalItems;
+                document.getElementById('subtotal').textContent = currencySymbol + ' ' + subtotal.toFixed(2);
+                document.getElementById('discountPercent').textContent = discountPercent.toFixed(2);
+                document.getElementById('discountAmount').textContent = '-' + currencySymbol + ' ' + discountAmount.toFixed(2);
+                document.getElementById('taxAmount').textContent = currencySymbol + ' ' + taxAmount.toFixed(2);
+                document.getElementById('grandTotal').textContent = currencySymbol + ' ' + grandTotal.toFixed(2);
+                
+                document.getElementById('totalAmount').value = totalAmount.toFixed(2);
+                document.getElementById('grandTotalValue').value = grandTotal.toFixed(2);
+            }
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // ✅ CustomerId select is visually hidden behind the searchable
+                    // Quick Create widget, so the browser's native "required" bubble
+                    // can't show on it - validate it here instead.
+                    const customerSelect = document.getElementById('CustomerId');
+                    if (customerSelect && !customerSelect.value) {
+                        e.preventDefault();
+                        alert('Please select a customer.');
+                        return;
+                    }
+
+                    const items = itemsContainer.querySelectorAll('.order-item');
+                    if (items.length === 0) {
+                        e.preventDefault();
+                        alert('Please add at least one item to the order.');
+                        return;
+                    }
+                    
+                    let hasError = false;
+                    items.forEach(item => {
+                        const productSelect = item.querySelector('.product-select');
+                        if (!productSelect.value) {
+                            hasError = true;
+                            productSelect.classList.add('is-invalid');
+                        } else {
+                            productSelect.classList.remove('is-invalid');
+                        }
+                    });
+                    
+                    if (hasError) {
+                        e.preventDefault();
+                        alert('Please select a product for all items.');
+                    }
+                });
+            }
+        });
+    </script>
+}

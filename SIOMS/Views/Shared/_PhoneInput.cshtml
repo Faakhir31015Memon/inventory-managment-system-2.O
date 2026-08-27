@@ -1,0 +1,23 @@
+@model string
+
+@{
+    var fieldName = ViewData["PhoneFieldName"] as string ?? "Phone";
+    var placeholder = ViewData["PhonePlaceholder"] as string ?? "Enter phone number";
+    var isRequired = ViewData["PhoneRequired"] as bool? ?? false;
+    var requiredAttr = isRequired ? "required" : "";
+    var requiredValidation = isRequired ? "data-required='true'" : "";
+}
+
+<div class="phone-input-wrapper">
+    <input type="tel" 
+           id="@fieldName" 
+           name="@fieldName" 
+           class="form-control phone-input" 
+           placeholder="@placeholder" 
+           @requiredAttr 
+           @requiredValidation
+           value="@Model"
+           autocomplete="off">
+    <div id="@(fieldName)Feedback" class="phone-feedback small mt-1"></div>
+    <span asp-validation-for="@fieldName" class="text-danger small"></span>
+</div>

@@ -1,0 +1,226 @@
+@model SIOMS.Models.Customer
+@{
+    ViewData["Title"] = "Customer Details";
+    ViewData["Subtitle"] = "View customer information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <a asp-controller="Customer" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Customers
+    </a>
+    <a asp-controller="Customer" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+        <i class="fas fa-edit me-2"></i> Edit
+    </a>
+    <a asp-controller="Order" asp-action="CreateSalesOrder" asp-route-customerId="@Model.Id" class="btn btn-success">
+        <i class="fas fa-plus me-2"></i> New Order
+    </a>
+}
+
+<div class="container-fluid py-4">
+    <!-- Customer Profile Card -->
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="avatar-circle-lg bg-primary text-white mb-3" style="width:100px;height:100px;font-size:40px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3 class="mb-1">@Model.Name</h3>
+                    <p class="text-muted mb-3">
+                        <span class="badge @(Model.CustomerType == "VIP" ? "bg-warning" : Model.CustomerType == "Wholesale" ? "bg-primary" : "bg-secondary")">
+                            @Model.CustomerType Customer
+                        </span>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success ms-1">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger ms-1">Inactive</span>
+                        }
+                    </p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            <h4 class="mb-0">@(Model.SalesOrders?.Count ?? 0)</h4>
+                            <small class="text-muted">Total Orders</small>
+                        </div>
+                        <div class="col-6">
+                            @{
+                                var totalSpent = Model.SalesOrders?.Where(so => so.Status == "Completed")
+                                    .Sum(so => so.GrandTotal) ?? 0;
+                            }
+                            <h4 class="mb-0 text-success">@SIOMS.Helpers.CurrencyFormatter.Format(totalSpent)</h4>
+                            <small class="text-muted">Total Spent</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-address-card me-2"></i> Contact Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Phone</small>
+                            <p class="mb-0">
+                                <i class="fas fa-phone me-2 text-primary" style="width:18px;"></i>
+                                <a href="tel:@Model.Phone" class="text-decoration-none">@Model.Phone</a>
+                            </p>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.Email))
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Email</small>
+                            <p class="mb-0">
+                                <i class="fas fa-envelope me-2 text-primary" style="width:18px;"></i>
+                                <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                            </p>
+                        </div>
+                    }
+                    
+                    @if (!string.IsNullOrEmpty(Model.Address))
+                    {
+                        <div>
+                            <small class="text-muted d-block">Address</small>
+                            <p class="mb-0">
+                                <i class="fas fa-map-marker-alt me-2 text-primary" style="width:18px;"></i>
+                                @Model.Address
+                            </p>
+                            
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Orders -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-shopping-cart me-2"></i> Orders (@(Model.SalesOrders?.Count ?? 0))
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.SalesOrders != null && Model.SalesOrders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in Model.SalesOrders.OrderByDescending(o => o.OrderDate))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@order.OrderNumber</strong>
+                                            </td>
+                                            <td>@order.OrderDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-secondary">@(order.Items?.Count ?? 0)</span>
+                                            </td>
+                                            <td>
+                                                <strong>@SIOMS.Helpers.CurrencyFormatter.Format(order.GrandTotal)</strong>
+                                            </td>
+                                            <td>
+                                                @if (order.Status == "Completed")
+                                                {
+                                                    <span class="badge bg-success">Completed</span>
+                                                }
+                                                else if (order.Status == "Processing")
+                                                {
+                                                    <span class="badge bg-info">Processing</span>
+                                                }
+                                                else if (order.Status == "Cancelled")
+                                                {
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">@order.Status</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Order" asp-action="SalesOrderDetails" asp-route-id="@order.Id" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-3">No orders found</p>
+                            <a asp-controller="Order" asp-action="CreateSalesOrder" asp-route-customerId="@Model.Id" 
+                               class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i> Create First Order
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i> Customer Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">Customer ID</small>
+                            <p class="mb-0">@Model.Id</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">Created Date</small>
+                            <p class="mb-0">@Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">Customer Since</small>
+                            <p class="mb-0">@Model.CreatedAt.ToString("MMM yyyy")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <small class="text-muted d-block">Last Order</small>
+                            @if (Model.SalesOrders != null && Model.SalesOrders.Any())
+                            {
+                                var lastOrder = Model.SalesOrders.OrderByDescending(o => o.OrderDate).FirstOrDefault();
+                                <p class="mb-0">@lastOrder?.OrderDate.ToString("MMM dd, yyyy")</p>
+                            }
+                            else
+                            {
+                                <p class="mb-0 text-muted">No orders yet</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

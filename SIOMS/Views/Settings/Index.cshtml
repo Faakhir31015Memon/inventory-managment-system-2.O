@@ -1,0 +1,493 @@
+@model SIOMS.Models.Settings
+
+@{
+    ViewData["Title"] = "System Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css" />
+    <style>
+        .iti {
+            width: 100%;
+        }
+
+        .iti__flag-container {
+            z-index: 10;
+        }
+
+        .phone-input-wrapper {
+            position: relative;
+        }
+
+        .phone-feedback.text-danger {
+            color: #dc3545 !important;
+        }
+
+        .phone-feedback.text-success {
+            color: #198754 !important;
+        }
+
+        /* Remove arrows from number inputs */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .pw-rules-settings {
+            list-style: none;
+            padding-left: 0;
+            margin: 8px 0 0;
+            font-size: 0.82rem;
+        }
+
+        .pw-rules-settings li {
+            color: #858796;
+            margin-bottom: 3px;
+        }
+
+        .pw-rules-settings li i {
+            width: 14px;
+            margin-right: 6px;
+            color: #d1d3e2;
+        }
+
+        .pw-rules-settings li.valid {
+            color: #198754;
+        }
+
+        .pw-rules-settings li.valid i {
+            color: #198754;
+        }
+    </style>
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-controller="Settings" asp-action="Index" method="post" id="settingsForm">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <!-- General Settings -->
+                            <div class="col-md-6">
+                                <div class="card card-primary">
+                                    <div class="card-header">
+                                        <h5 class="card-title">General Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label asp-for="SiteName"></label>
+                                            <input asp-for="SiteName" class="form-control" />
+                                            <span asp-validation-for="SiteName" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label asp-for="SiteEmail"></label>
+                                            <input asp-for="SiteEmail" class="form-control" />
+                                            <span asp-validation-for="SiteEmail" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label asp-for="Currency"></label>
+                                            <select asp-for="Currency" class="form-control">
+                                                <option value="USD">USD - US Dollar ($)</option>
+                                                <option value="PKR">PKR - Pakistani Rupee (Rs.)</option>
+                                                <option value="EUR">EUR - Euro (€)</option>
+                                                <option value="GBP">GBP - British Pound (£)</option>
+                                                <option value="INR">INR - Indian Rupee (₹)</option>
+                                                <option value="AED">AED - UAE Dirham (AED)</option>
+                                            </select>
+                                            <small class="form-text text-muted">
+                                                The currency symbol updates automatically across the whole app - no
+                                                manual entry needed.
+                                            </small>
+                                            <span asp-validation-for="Currency" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Business Settings -->
+                            <div class="col-md-6">
+                                <div class="card card-info">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Business Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label asp-for="CompanyName"></label>
+                                            <input asp-for="CompanyName" class="form-control" />
+                                            <span asp-validation-for="CompanyName" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label asp-for="CompanyAddress"></label>
+                                            <input asp-for="CompanyAddress" class="form-control" />
+                                            <span asp-validation-for="CompanyAddress" class="text-danger"></span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label asp-for="CompanyPhone"></label>
+                                            <div class="phone-input-wrapper">
+                                                <input asp-for="CompanyPhone" class="form-control" id="CompanyPhone"
+                                                       placeholder="Enter phone number" />
+                                                <div id="CompanyPhoneFeedback" class="phone-feedback small mt-1"></div>
+                                            </div>
+                                            <span asp-validation-for="CompanyPhone" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <button type="submit" class="btn btn-primary btn-lg" id="saveBtn">
+                                            <i class="fas fa-save"></i> Save Settings
+                                        </button>
+                                        <a asp-controller="Settings" asp-action="Index"
+                                           class="btn btn-secondary btn-lg ms-2">
+                                            <i class="fas fa-undo"></i> Reset
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Security: Change Username / Change Password -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card card-secondary">
+                                <div class="card-header">
+                                    <h5 class="card-title">Change Username</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form asp-controller="Settings" asp-action="ChangeUsername" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group">
+                                            <label>Current Username</label>
+                                            <input type="text" name="currentUsername" class="form-control"
+                                                   value="@ViewBag.CurrentUsername" required />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>New Username</label>
+                                            <input type="text" name="newUsername" class="form-control" required />
+                                        </div>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-user-edit"></i> Update Username
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="card card-secondary">
+                                <div class="card-header">
+                                    <h5 class="card-title">Change Password</h5>
+                                </div>
+                                <div class="card-body">
+                                    <form asp-controller="Settings" asp-action="ChangePassword" method="post"
+                                          id="changePasswordForm">
+                                        @Html.AntiForgeryToken()
+                                        <div class="form-group">
+                                            <label>Current Password</label>
+                                            <div class="input-group">
+                                                <input type="password" name="currentPassword"
+                                                       class="form-control password-field" required />
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text password-toggle"
+                                                          style="cursor: pointer;">
+                                                        <i class="fas fa-eye"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>New Password</label>
+                                            <div class="input-group">
+                                                <input type="password" name="newPassword" id="settingsNewPassword"
+                                                       class="form-control password-field" minlength="8"
+                                                       pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+                                                       title="Must be at least 8 characters and include uppercase, lowercase, number, and special character"
+                                                       required />
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text password-toggle"
+                                                          style="cursor: pointer;">
+                                                        <i class="fas fa-eye"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <ul class="pw-rules-settings" id="settingsPwRules">
+                                                <li id="sRuleLength"><i class="fas fa-circle"></i> At least 8 characters</li>
+                                                <li id="sRuleUpper"><i class="fas fa-circle"></i> One uppercase letter</li>
+                                                <li id="sRuleLower"><i class="fas fa-circle"></i> One lowercase letter</li>
+                                                <li id="sRuleNumber"><i class="fas fa-circle"></i> One number</li>
+                                                <li id="sRuleSpecial"><i class="fas fa-circle"></i> One special character</li>
+                                            </ul>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Confirm New Password</label>
+                                            <div class="input-group">
+                                                <input type="password" name="confirmPassword"
+                                                       class="form-control password-field" minlength="8" required />
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text password-toggle"
+                                                          style="cursor: pointer;">
+                                                        <i class="fas fa-eye"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-warning">
+                                            <i class="fas fa-key"></i> Update Password
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize phone input
+            initializePhoneInput('CompanyPhone', false);
+
+            // Password toggle functionality
+            document.querySelectorAll('.password-toggle').forEach(function (toggle) {
+                toggle.addEventListener('click', function () {
+                    var input = this.closest('.input-group').querySelector('.password-field');
+                    var icon = this.querySelector('i');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+
+            // Auto-dismiss alerts
+            setTimeout(function () {
+                document.querySelectorAll('.alert').forEach(function (alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                });
+            }, 5000);
+
+            // Live password rules checklist
+            var settingsNewPw = document.getElementById('settingsNewPassword');
+            if (settingsNewPw) {
+                var sRules = {
+                    sRuleLength: function (v) { return v.length >= 8; },
+                    sRuleUpper: function (v) { return /[A-Z]/.test(v); },
+                    sRuleLower: function (v) { return /[a-z]/.test(v); },
+                    sRuleNumber: function (v) { return /\d/.test(v); },
+                    sRuleSpecial: function (v) { return /[^A-Za-z0-9]/.test(v); }
+                };
+                settingsNewPw.addEventListener('input', function () {
+                    var value = this.value;
+                    for (var id in sRules) {
+                        var li = document.getElementById(id);
+                        var icon = li.querySelector('i');
+                        if (sRules[id](value)) {
+                            li.classList.add('valid');
+                            icon.classList.remove('fa-circle');
+                            icon.classList.add('fa-check-circle');
+                        } else {
+                            li.classList.remove('valid');
+                            icon.classList.remove('fa-check-circle');
+                            icon.classList.add('fa-circle');
+                        }
+                    }
+                });
+            }
+
+            // Form submission validation
+            var form = document.getElementById('settingsForm');
+            if (form) {
+                form.addEventListener('submit', function (e) {
+                    var phoneInput = document.querySelector('#CompanyPhone');
+                    var saveBtn = document.getElementById('saveBtn');
+
+                    if (phoneInput && phoneInput._iti) {
+                        var iti = phoneInput._iti;
+                        var value = phoneInput.value.trim();
+
+                        if (value !== '' && !iti.isValidNumber()) {
+                            e.preventDefault();
+                            phoneInput.focus();
+                            var feedback = document.querySelector('#CompanyPhoneFeedback');
+                            if (feedback) {
+                                feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                                feedback.className = 'phone-feedback small mt-1 text-danger';
+                            }
+                            phoneInput.classList.add('is-invalid');
+                            return false;
+                        }
+
+                        // Set the full international number for submission
+                        if (value !== '' && iti.isValidNumber()) {
+                            phoneInput.value = iti.getNumber();
+                        }
+                    }
+
+                    // Disable submit button to prevent double submission
+                    if (saveBtn) {
+                        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+                        saveBtn.disabled = true;
+                    }
+                });
+            }
+        });
+
+        function initializePhoneInput(inputId, isRequired) {
+            var phoneInput = document.querySelector('#' + inputId);
+            if (!phoneInput || typeof window.intlTelInput !== 'function') return;
+
+            var initialCountry = 'pk';
+            var phoneValue = phoneInput.value;
+            if (phoneValue) {
+                var match = phoneValue.match(/^\+(\d{1,3})/);
+                if (match) {
+                    // Let intl-tel-input detect it automatically
+                }
+            }
+
+            var iti = window.intlTelInput(phoneInput, {
+                initialCountry: initialCountry,
+                preferredCountries: ['pk', 'us', 'gb', 'ae', 'in', 'sa', 'ca', 'au'],
+                separateDialCode: true,
+                utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js',
+                autoPlaceholder: 'polite',
+                formatOnDisplay: true,
+                allowDropdown: true,
+                nationalMode: false
+            });
+
+            // Store iti instance on the input element
+            phoneInput._iti = iti;
+
+            // Validate phone number
+            function validatePhone() {
+                var value = phoneInput.value.trim();
+                var feedback = document.querySelector('#' + inputId + 'Feedback');
+
+                if (value === '') {
+                    phoneInput.classList.remove('is-invalid', 'is-valid');
+                    if (feedback) feedback.textContent = '';
+                    return true;
+                }
+
+                if (iti.isValidNumber()) {
+                    phoneInput.classList.remove('is-invalid');
+                    phoneInput.classList.add('is-valid');
+                    if (feedback) {
+                        feedback.textContent = '✓ Valid phone number';
+                        feedback.className = 'phone-feedback small mt-1 text-success';
+                    }
+                    return true;
+                } else {
+                    phoneInput.classList.remove('is-valid');
+                    phoneInput.classList.add('is-invalid');
+                    if (feedback) {
+                        feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                        feedback.className = 'phone-feedback small mt-1 text-danger';
+                    }
+                    return false;
+                }
+            }
+
+            // Restrict input to digits only (plus the + sign for country code)
+            phoneInput.addEventListener('keypress', function (e) {
+                var char = String.fromCharCode(e.which);
+                if (!/[\d+]/.test(char) && e.which !== 8 && e.which !== 46 && e.which !== 37 && e.which !== 39) {
+                    e.preventDefault();
+                }
+            });
+
+            // Prevent paste of non-numeric characters
+            phoneInput.addEventListener('paste', function (e) {
+                var pasted = (e.clipboardData || window.clipboardData).getData('text');
+                var cleaned = pasted.replace(/[^0-9+]/g, '');
+                if (cleaned !== pasted) {
+                    e.preventDefault();
+                    var start = this.selectionStart;
+                    var end = this.selectionEnd;
+                    var value = this.value;
+                    this.value = value.substring(0, start) + cleaned + value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + cleaned.length;
+                    var event = new Event('input', { bubbles: true });
+                    this.dispatchEvent(event);
+                }
+            });
+
+            // Validate on blur and country change
+            phoneInput.addEventListener('blur', function () {
+                if (iti.isValidNumber()) {
+                    this.value = iti.getNumber();
+                }
+                validatePhone();
+            });
+
+            phoneInput.addEventListener('input', function () {
+                phoneInput.classList.remove('is-invalid', 'is-valid');
+                var feedback = document.querySelector('#' + inputId + 'Feedback');
+                if (feedback) feedback.textContent = '';
+            });
+
+            phoneInput.addEventListener('countrychange', function () {
+                validatePhone();
+            });
+
+            // Initial validation if value exists
+            if (phoneInput.value.trim()) {
+                setTimeout(validatePhone, 500);
+            }
+
+            return iti;
+        }
+    </script>
+}

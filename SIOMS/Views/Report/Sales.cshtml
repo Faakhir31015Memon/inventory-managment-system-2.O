@@ -1,0 +1,209 @@
+@model IEnumerable<SIOMS.Models.SalesOrder>
+
+@{
+    ViewData["Title"] = "Sales Report";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var totalSales = ((Dictionary<int, decimal>)ViewBag.ConvertedTotals)?.Values.Sum() ?? 0;
+    var totalOrders = Model?.Count() ?? 0;
+    var avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-chart-line"></i> Sales Report
+        </h3>
+    </div>
+    <div class="card-body">
+        <!-- Filter - Same style as Sales Orders -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <form method="get" asp-controller="Report" asp-action="Sales" id="salesReportForm" class="row g-2 align-items-center">
+                    <!-- From Date -->
+                    <div class="col-auto">
+                        <div class="input-group" style="min-width:180px;">
+                            <span class="input-group-text">From</span>
+                            <input type="date" name="fromDate" id="reportFromDate" class="form-control" value="@ViewBag.FromDate">
+                        </div>
+                    </div>
+                    <!-- To Date -->
+                    <div class="col-auto">
+                        <div class="input-group" style="min-width:180px;">
+                            <span class="input-group-text">To</span>
+                            <input type="date" name="toDate" id="reportToDate" class="form-control" value="@ViewBag.ToDate">
+                        </div>
+                    </div>
+                    <!-- Filter Button -->
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                    <!-- Reset Button -->
+                    <div class="col-auto">
+                        <a asp-controller="Report" asp-action="Sales" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm mb-0 summary-table">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-money-bill-wave text-success me-1"></i> Total Sales</th>
+                                <th><i class="fas fa-shopping-cart text-info me-1"></i> Total Orders</th>
+                                <th><i class="fas fa-calculator text-warning me-1"></i> Average Order</th>
+                                <th><i class="fas fa-tag text-danger me-1"></i> Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(totalSales)</td>
+                                <td class="fw-bold">@totalOrders</td>
+                                <td class="fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(avgOrderValue)</td>
+                                <td class="fw-bold">@(ViewBag.StatusFilter ?? "All")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var order in Model)
+                        {
+                            <tr>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.Customer?.Name</td>
+                                <td>@order.OrderDate.ToString("yyyy-MM-dd")</td>
+                                <td>@SIOMS.Helpers.CurrencyFormatter.Symbol@(((Dictionary<int, decimal>)ViewBag.ConvertedTotals)[order.Id].ToString("N2"))</td>
+                                <td>
+                                    <span class="badge @(order.Status == "Completed" ? "badge-success" : 
+                                                       order.Status == "Pending" ? "badge-warning" : 
+                                                       order.Status == "Processing" ? "badge-info" : 
+                                                       "badge-danger")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-controller="Order" asp-action="SalesOrderDetails" asp-route-id="@order.Id" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="fas fa-info-circle"></i> No sales orders found
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Date validation: To date must be at least 1 day after From date
+            const fromDate = document.getElementById('reportFromDate');
+            const toDate = document.getElementById('reportToDate');
+            const form = document.getElementById('salesReportForm');
+            
+            if (fromDate && toDate) {
+                function validateDates() {
+                    if (fromDate.value && toDate.value) {
+                        const from = new Date(fromDate.value);
+                        const to = new Date(toDate.value);
+                        
+                        const diffTime = to - from;
+                        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                        
+                        if (diffDays < 1) {
+                            alert('"To" date must be at least 1 day after "From" date.');
+                            toDate.value = '';
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+
+                if (fromDate.value) {
+                    const from = new Date(fromDate.value);
+                    const minDate = new Date(from);
+                    minDate.setDate(minDate.getDate() + 1);
+                    toDate.min = minDate.toISOString().split('T')[0];
+                }
+                if (toDate.value) {
+                    const to = new Date(toDate.value);
+                    const maxDate = new Date(to);
+                    maxDate.setDate(maxDate.getDate() - 1);
+                    fromDate.max = maxDate.toISOString().split('T')[0];
+                }
+
+                fromDate.addEventListener('change', function() {
+                    if (this.value) {
+                        const from = new Date(this.value);
+                        const minDate = new Date(from);
+                        minDate.setDate(minDate.getDate() + 1);
+                        toDate.min = minDate.toISOString().split('T')[0];
+                        
+                        if (toDate.value && toDate.value <= this.value) {
+                            alert('"To" date must be at least 1 day after "From" date.');
+                            toDate.value = '';
+                        }
+                    }
+                });
+                
+                toDate.addEventListener('change', function() {
+                    if (this.value && fromDate.value) {
+                        const from = new Date(fromDate.value);
+                        const to = new Date(this.value);
+                        const diffTime = to - from;
+                        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                        
+                        if (diffDays < 1) {
+                            alert('"To" date must be at least 1 day after "From" date.');
+                            this.value = '';
+                        }
+                    }
+                });
+
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        if (!validateDates()) {
+                            e.preventDefault();
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+}

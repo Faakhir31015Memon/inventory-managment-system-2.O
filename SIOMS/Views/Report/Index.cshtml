@@ -1,0 +1,432 @@
+@model SIOMS.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Reports Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <!-- Summary Cards -->
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>@Model.TotalProducts</h3>
+                <p>Total Products</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-box"></i>
+            </div>
+            <a asp-controller="Product" asp-action="Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>@Model.TotalCustomers</h3>
+                <p>Total Customers</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <a asp-controller="Customer" asp-action="Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>@Model.TotalSuppliers</h3>
+                <p>Total Suppliers</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <a asp-controller="Supplier" asp-action="Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>@Model.TotalCategories</h3>
+                <p>Total Categories</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <a asp-controller="Category" asp-action="Index" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Stock Cards -->
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>@Model.OutOfStockItems</h3>
+                <p>Out of Stock Items</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <a asp-controller="Product" asp-action="Index" class="small-box-footer">View Products <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>@Model.LowStockItems</h3>
+                <p>Low Stock Items</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <a asp-controller="Product" asp-action="Index" class="small-box-footer">View Products <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>@SIOMS.Helpers.CurrencyFormatter.Format(Model.TotalStockValue)</h3>
+                <p>Total Stock Value</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Order Cards -->
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-primary">
+            <div class="inner">
+                <h3>@Model.PendingSalesOrders</h3>
+                <p>Pending Sales Orders</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <a asp-controller="Order" asp-action="SalesOrders" class="small-box-footer">View Orders <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-secondary">
+            <div class="inner">
+                <h3>@Model.PendingPurchaseOrders</h3>
+                <p>Pending Purchase Orders</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-truck-loading"></i>
+            </div>
+            <a asp-controller="Order" asp-action="PurchaseOrders" class="small-box-footer">View Orders <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>@SIOMS.Helpers.CurrencyFormatter.Format(Model.TodaySales)</h3>
+                <p>Today's Sales</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-calendar-day"></i>
+            </div>
+            <a asp-controller="Report" asp-action="Sales" class="small-box-footer">View Report <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Financial Cards -->
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>@SIOMS.Helpers.CurrencyFormatter.Format(Model.MonthlyRevenue)</h3>
+                <p>Monthly Revenue</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-arrow-up"></i>
+            </div>
+            <a asp-controller="Report" asp-action="Sales" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>@SIOMS.Helpers.CurrencyFormatter.Format(Model.MonthlyExpenses)</h3>
+                <p>Monthly Expenses</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-arrow-down"></i>
+            </div>
+            <a asp-controller="Report" asp-action="Purchases" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+    <div class="col-lg-4 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>@Model.ProfitMargin.ToString("F1")%</h3>
+                <p>Profit Margin</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <a asp-controller="Report" asp-action="Index" class="small-box-footer">View Report <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Monthly Sales & Purchases</h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart">
+                    <canvas id="salesChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Stock by Category</h5>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart">
+                    <canvas id="categoryChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Selling Products & Recent Orders -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Top Selling Products</h5>
+                <div class="card-tools">
+                    <span class="badge badge-primary">This Month</span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    @if (Model.TopSellingProducts != null && Model.TopSellingProducts.Any())
+                    {
+                        foreach (var item in Model.TopSellingProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                @item.ProductName
+                                <span class="badge badge-primary badge-pill">@item.QuantitySold sold</span>
+                            </li>
+                        }
+                    }
+                    else
+                    {
+                        <li class="list-group-item text-center py-3 text-muted">No sales data available</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Recent Orders</h5>
+                <div class="card-tools">
+                    <a asp-controller="Order" asp-action="SalesOrders" class="btn btn-sm btn-primary">View All</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentOrders != null && Model.RecentOrders.Any())
+                            {
+                                foreach (var order in Model.RecentOrders)
+                                {
+                                    <tr>
+                                        <td>@order.OrderNumber</td>
+                                        <td>@order.CustomerName</td>
+                                        <td>@SIOMS.Helpers.CurrencyFormatter.Format(order.Amount)</td>
+                                        <td>
+                                            <span class="badge @(order.Status == "Completed" ? "badge-success" : 
+                                                               order.Status == "Pending" ? "badge-warning" : 
+                                                               "badge-secondary")">
+                                                @order.Status
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">No orders found</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Recent Alerts</h5>
+                <div class="card-tools">
+                    <a asp-controller="Alert" asp-action="Index" class="btn btn-sm btn-warning">View All</a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Message</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentAlerts != null && Model.RecentAlerts.Any())
+                            {
+                                foreach (var alert in Model.RecentAlerts)
+                                {
+                                    <tr>
+                                        <td>@alert.ProductName</td>
+                                        <td>@alert.Message</td>
+                                        <td>@alert.AlertDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>
+                                            <span class="badge @(alert.IsResolved ? "badge-success" : "badge-warning")">
+                                                @(alert.IsResolved ? "Resolved" : "Active")
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-3 text-muted">No alerts</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Sales Chart
+            var salesData = @Html.Raw(Json.Serialize(Model.MonthlySales));
+            var purchasesData = @Html.Raw(Json.Serialize(Model.MonthlyPurchases));
+            
+            var monthNames = salesData.map(function(d) { return d.monthName; });
+            var salesValues = salesData.map(function(d) { return d.sales; });
+            var purchaseValues = purchasesData.map(function(d) { return d.purchases; });
+
+            var salesChartCanvas = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesChartCanvas, {
+                type: 'line',
+                data: {
+                    labels: monthNames,
+                    datasets: [
+                        {
+                            label: 'Sales',
+                            data: salesValues,
+                            borderColor: 'rgba(60,141,188,1)',
+                            backgroundColor: 'rgba(60,141,188,0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Purchases',
+                            data: purchaseValues,
+                            borderColor: 'rgba(255,99,132,1)',
+                            backgroundColor: 'rgba(255,99,132,0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Category Chart
+            var categoryData = @Html.Raw(Json.Serialize(Model.StockByCategory));
+            var categoryNames = categoryData.map(function(d) { return d.categoryName; });
+            var categoryStocks = categoryData.map(function(d) { return d.totalStock; });
+
+            var categoryChartCanvas = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryChartCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryNames,
+                    datasets: [{
+                        data: categoryStocks,
+                        backgroundColor: [
+                            '#f56954', '#00a65a', '#f39c12', '#00c0ef', '#3c8dbc',
+                            '#d2d6de', '#605ca8', '#ff851b', '#01ff70', '#39cccc'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,222 @@
+/* SIOMS Admin Panel - Login Page Styles */
+
+/* ===== Login Wrapper ===== */
+.login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a2332 0%, #2c3e50 100%);
+    padding: 20px;
+}
+
+/* ===== Login Container ===== */
+.login-container {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px 35px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.6s ease forwards;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Logo ===== */
+.logo-container {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #4e73df, #2e59d9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    font-size: 32px;
+    color: #ffffff;
+    box-shadow: 0 5px 20px rgba(78, 115, 223, 0.3);
+    transition: all 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(78, 115, 223, 0.4);
+}
+
+.app-name {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a2332;
+    margin-bottom: 5px;
+    letter-spacing: -0.5px;
+}
+
+.app-tagline {
+    color: #858796;
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* ===== Form Header ===== */
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-header h2 {
+    font-weight: 600;
+    color: #1a2332;
+    margin-bottom: 5px;
+    font-size: 1.5rem;
+}
+
+.form-header p {
+    color: #858796;
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+/* ===== Form Fields ===== */
+.form-label {
+    font-weight: 500;
+    color: #1a2332;
+    margin-bottom: 6px;
+}
+
+.input-group-text {
+    background: #f8f9fc;
+    border: 1px solid #d1d3e2;
+    border-radius: 8px 0 0 8px;
+    padding: 10px 15px;
+}
+
+.form-control {
+    border-radius: 0 8px 8px 0;
+    border: 1px solid #d1d3e2;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #4e73df;
+    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+}
+
+.password-toggle {
+    border-radius: 0 8px 8px 0;
+    border-left: none;
+    padding: 10px 15px;
+}
+
+.password-toggle:hover {
+    background: #f8f9fc;
+}
+
+/* ===== Login Button ===== */
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #4e73df, #2e59d9);
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-login:hover {
+    background: linear-gradient(135deg, #2e59d9, #1a3a8a);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(78, 115, 223, 0.4);
+}
+
+.btn-login:active {
+    transform: translateY(0);
+}
+
+.btn-login:disabled {
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ===== Alert ===== */
+.alert-custom {
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border: none;
+    background: #f8d7da;
+    color: #721c24;
+    display: flex;
+    align-items: center;
+}
+
+.alert-custom i {
+    font-size: 1.1rem;
+}
+
+/* ===== Footer Note ===== */
+.footer-note {
+    text-align: center;
+    margin-top: 20px;
+    color: #858796;
+    font-size: 0.85rem;
+}
+
+.footer-note strong {
+    color: #1a2332;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 576px) {
+    .login-container {
+        padding: 30px 20px;
+        border-radius: 12px;
+    }
+    
+    .app-name {
+        font-size: 1.6rem;
+    }
+    
+    .logo {
+        width: 60px;
+        height: 60px;
+        font-size: 28px;
+    }
+    
+    .form-header h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .login-container {
+        padding: 20px 15px;
+    }
+    
+    .app-name {
+        font-size: 1.4rem;
+    }
+}

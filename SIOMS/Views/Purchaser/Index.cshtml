@@ -1,0 +1,206 @@
+@model IEnumerable<SIOMS.Models.Purchaser>
+@{
+    ViewData["Title"] = "Purchasers";
+    ViewData["Subtitle"] = "Manage purchasers";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <form method="get" asp-controller="Purchaser" asp-action="Index" class="row g-3">
+                        <div class="col-auto">
+                            <input type="text" name="search" class="form-control" placeholder="Search purchasers..."
+                                   value="@ViewBag.SearchTerm">
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                            @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                            {
+                                <a asp-controller="Purchaser" asp-action="Index" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-redo"></i> Reset
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a asp-controller="Purchaser" asp-action="Create" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Add New Purchaser
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Purchaser Name</th>
+                                <th>Contact</th>
+                                <th>Email</th>
+                                <th>Orders</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var purchaser in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center" style="gap:12px;">
+                                            <i class="fas fa-user text-primary"
+                                               style="font-size:1rem;width:20px;text-align:center;"></i>
+                                            <div>
+                                                <strong>@purchaser.Name</strong>
+                                                @if (!string.IsNullOrEmpty(purchaser.Phone))
+                                                {
+                                                    <br>
+                                                    <small class="text-muted">@purchaser.Phone</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(purchaser.Phone))
+                                        {
+                                            <a href="tel:@purchaser.Phone" class="text-decoration-none">
+                                                @purchaser.Phone
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(purchaser.Email))
+                                        {
+                                            <a href="mailto:@purchaser.Email" class="text-decoration-none">
+                                                @purchaser.Email
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">@(purchaser.PurchaseOrders?.Count ?? 0)</span>
+                                    </td>
+                                    <td>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input status-toggle" type="checkbox"
+                                                   data-id="@purchaser.Id" @(purchaser.IsActive ? "checked" : "")>
+                                            <label class="form-check-label">
+                                                @(purchaser.IsActive ? "Active" : "Inactive")
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-controller="Purchaser" asp-action="Details" asp-route-id="@purchaser.Id"
+                                               class="btn btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-controller="Purchaser" asp-action="Edit" asp-route-id="@purchaser.Id"
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form asp-controller="Purchaser" asp-action="Delete" asp-route-id="@purchaser.Id"
+                                                  method="post" class="delete-confirm-form d-inline"
+                                                  data-message="Are you sure you want to delete '@purchaser.Name'? This action cannot be undone.">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No purchasers found</h5>
+                    <p class="text-muted mb-4">Get started by adding your first purchaser.</p>
+                    <a asp-controller="Purchaser" asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Add First Purchaser
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.status-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function () {
+                    const id = this.dataset.id;
+                    const isActive = this.checked;
+
+                    if (confirm('Are you sure you want to change purchaser status?')) {
+                        fetch('@Url.Action("ToggleStatus", "Purchaser")/' + id, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    const label = this.nextElementSibling;
+                                    if (label) label.textContent = data.isActive ? 'Active' : 'Inactive';
+                                    alert(data.message);
+                                } else {
+                                    this.checked = !isActive;
+                                    alert(data.message);
+                                }
+                            })
+                            .catch(() => {
+                                this.checked = !isActive;
+                                alert('Error updating status');
+                            });
+                    } else {
+                        this.checked = !isActive;
+                    }
+                });
+            });
+
+        });
+    </script>
+}

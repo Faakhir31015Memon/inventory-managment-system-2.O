@@ -1,0 +1,43 @@
+@model List<SIOMS.Models.Product>
+@{
+    var count = Model.Count;
+}
+<a class="nav-link" data-toggle="dropdown" href="#">
+    <i class="fas fa-bell"></i>
+    @if (count > 0)
+    {
+        <span class="badge badge-warning navbar-badge">@count</span>
+    }
+</a>
+<div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+    <span class="dropdown-item dropdown-header">
+        @(count > 0 ? $"{count} Product(s) Need Attention" : "No Alerts")
+    </span>
+    <div class="dropdown-divider"></div>
+    @if (count == 0)
+    {
+        <a href="#" class="dropdown-item text-muted">
+            <i class="fas fa-check-circle mr-2 text-success"></i> All stock levels are healthy
+        </a>
+    }
+    else
+    {
+        @foreach (var product in Model.Take(5))
+        {
+            <a asp-controller="Alert" asp-action="Index" class="dropdown-item">
+                @if (product.StockQuantity == 0)
+                {
+                    <i class="fas fa-ban mr-2 text-danger"></i>
+                    <text>@product.Name - Out of Stock</text>
+                }
+                else
+                {
+                    <i class="fas fa-exclamation-triangle mr-2 text-warning"></i>
+                    <text>@product.Name - Low Stock (@product.StockQuantity)</text>
+                }
+            </a>
+            <div class="dropdown-divider"></div>
+        }
+    }
+    <a asp-controller="Alert" asp-action="Index" class="dropdown-item dropdown-footer">See All Alerts</a>
+</div>

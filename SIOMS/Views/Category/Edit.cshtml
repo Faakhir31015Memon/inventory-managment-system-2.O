@@ -1,0 +1,107 @@
+@model SIOMS.Models.Category
+@{
+    ViewData["Title"] = "Edit Category";
+    ViewData["Subtitle"] = "Update category information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <a asp-controller="Category" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to List
+    </a>
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card animate-slide-up">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Edit Category</h5>
+            </div>
+            <div class="card-body">
+                <!-- ✅ Shows old data automatically -->
+                
+                <!-- ✅ Show validation errors at top -->
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i> Please fix the following errors:</h6>
+                        <ul class="mb-0">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+                
+                <!-- ✅ Edit Form - Action points to Edit method with ID -->
+                <form method="post" asp-controller="Category" asp-action="Edit" id="editForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    
+                    <div class="form-group mb-3">
+                        <label for="Name" class="form-label">Category Name *</label>
+                        <input type="text" id="Name" name="Name" class="form-control" 
+                               placeholder="Enter category name" required
+                               value="@Model.Name">
+                        @if (ViewData.ModelState["Name"]?.Errors?.Any() == true)
+                        {
+                            <div class="text-danger small">
+                                @ViewData.ModelState["Name"]?.Errors?.First().ErrorMessage
+                            </div>
+                        }
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label for="Description" class="form-label">Description</label>
+                        <textarea id="Description" name="Description" class="form-control" rows="4" 
+                                  placeholder="Enter description (optional)">@Model.Description</textarea>
+                        @if (ViewData.ModelState["Description"]?.Errors?.Any() == true)
+                        {
+                            <div class="text-danger small">
+                                @ViewData.ModelState["Description"]?.Errors?.First().ErrorMessage
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="Category" asp-action="Index" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-2"></i> Update Category
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('editForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(e) {
+                    const nameInput = document.getElementById('Name');
+                    
+                    // Client-side validation
+                    if (!nameInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Category name is required');
+                        nameInput.focus();
+                        return false;
+                    }
+                    
+                    // Show loading state
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+                    submitBtn.disabled = true;
+                });
+                
+                // Auto-focus on name field
+                document.getElementById('Name').focus();
+            }
+        });
+    </script>
+}

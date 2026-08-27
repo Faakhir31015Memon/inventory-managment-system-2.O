@@ -1,0 +1,145 @@
+@model SIOMS.Models.Category
+@{
+    ViewData["Title"] = "Category Details";
+    ViewData["Subtitle"] = "View category information and products";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <a asp-controller="Category" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to List
+    </a>
+    <a asp-controller="Category" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+        <i class="fas fa-edit me-2"></i> Edit
+    </a>
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card animate-slide-up">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Category Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <!-- Category Header -->
+                            <div class="category-header mb-4 pb-3 border-bottom" style="display: flex; align-items: flex-start; gap: 16px;">
+                                <div class="category-icon-lg" style="flex-shrink: 0; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #f0f4ff; border-radius: 12px;">
+                                    <i class="fas fa-folder" style="font-size: 2.5rem; color: #4e73df;"></i>
+                                </div>
+                                <div style="flex: 1; min-width: 0; padding-top: 4px;">
+                                    <h3 class="mb-1" style="word-break: break-word; font-size: 1.5rem;">@Model.Name</h3>
+                                    <p class="text-muted mb-0">Category ID: @Model.Id</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Category Details -->
+                            <div class="category-details">
+                                <!-- Description -->
+                                <div class="mb-4">
+                                    <h6 class="text-muted mb-2" style="font-weight: 600; font-size: 0.85rem;">Description</h6>
+                                    @if (!string.IsNullOrEmpty(Model.Description))
+                                    {
+                                        <p class="mb-0" style="font-size: 0.95rem;">@Model.Description</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="text-muted mb-0" style="font-size: 0.95rem;"><i>No description provided</i></p>
+                                    }
+                                </div>
+                                
+                                <!-- Dates -->
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-muted mb-2" style="font-weight: 600; font-size: 0.85rem;">Created Date</h6>
+                                        <p class="mb-0" style="font-size: 0.95rem;">
+                                            <i class="fas fa-calendar-plus me-2 text-muted"></i>
+                                            @Model.CreatedAt.ToString("MMMM dd, yyyy hh:mm tt")
+                                        </p>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-3">
+                                        <h6 class="text-muted mb-2" style="font-weight: 600; font-size: 0.85rem;">Last Updated</h6>
+                                        <p class="mb-0" style="font-size: 0.95rem;">
+                                            <i class="fas fa-calendar-check me-2 text-muted"></i>
+                                            @(Model.UpdatedAt?.ToString("MMMM dd, yyyy hh:mm tt") ?? "Not updated yet")
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <!-- Products in this category -->
+                    <div class="category-products">
+                        <h5 class="mb-3">Products in this Category (@(Model.Products?.Count ?? 0))</h5>
+                        
+                        @if (Model.Products?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Product Name</th>
+                                            <th>SKU</th>
+                                            <th>Stock</th>
+                                            <th>Price</th>
+                                            <th class="text-center">View</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var product in Model.Products.Take(5))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@product.Name</strong>
+                                                </td>
+                                                <td>@product.SKU</td>
+                                                <td>
+                                                    <span class="badge @(product.StockQuantity <= product.MinStockLimit ? "bg-warning" : "bg-success")">
+                                                        @product.StockQuantity
+                                                    </span>
+                                                </td>
+                                                <td>@SIOMS.Helpers.CurrencyFormatter.Format(product.Price)</td>
+                                                <td class="text-center">
+                                                    <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" 
+                                                       class="btn btn-sm btn-outline-info">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                                
+                                @if (Model.Products.Count > 5)
+                                {
+                                    <div class="text-center mt-3">
+                                        <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@Model.Id" 
+                                           class="btn btn-outline-primary">
+                                            <i class="fas fa-eye me-2"></i> View All @Model.Products.Count Products
+                                        </a>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted mb-3">No products found in this category.</p>
+                                <a asp-controller="Product" asp-action="Create" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i> Add Product
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

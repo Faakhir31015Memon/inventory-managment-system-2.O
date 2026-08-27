@@ -1,0 +1,289 @@
+@model SIOMS.Models.Supplier
+@{
+    ViewData["Title"] = "Create Supplier";
+    ViewData["Subtitle"] = "Add a new supplier";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <a asp-controller="Supplier" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to List
+    </a>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css" />
+    <style>
+        .iti {
+            width: 100%;
+        }
+        .iti__flag-container {
+            z-index: 10;
+        }
+        .phone-input-wrapper {
+            position: relative;
+        }
+        .phone-feedback.text-danger {
+            color: #dc3545 !important;
+        }
+        .phone-feedback.text-success {
+            color: #198754 !important;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-plus-circle me-2"></i> Create New Supplier
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i> Please fix the following errors:</h6>
+                        <ul class="mb-0">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <form method="post" asp-controller="Supplier" asp-action="Create" id="createForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="Name" class="form-label">Supplier Name *</label>
+                            <input type="text" id="Name" name="Name" class="form-control" 
+                                   placeholder="Enter supplier name" required autofocus
+                                   value="@Model?.Name">
+                            @if (ViewData.ModelState["Name"]?.Errors?.Any() == true)
+                            {
+                                <div class="invalid-feedback d-block">
+                                    @ViewData.ModelState["Name"]?.Errors?.First().ErrorMessage
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="Phone" class="form-label">Contact Phone</label>
+                            <div class="phone-input-wrapper">
+                                <input type="tel" id="Phone" name="Phone" class="form-control phone-input" 
+                                       placeholder="Enter phone number" value="@Model?.Phone">
+                                <div id="PhoneFeedback" class="phone-feedback small mt-1"></div>
+                            </div>
+                            @if (ViewData.ModelState["Phone"]?.Errors?.Any() == true)
+                            {
+                                <div class="invalid-feedback d-block">
+                                    @ViewData.ModelState["Phone"]?.Errors?.First().ErrorMessage
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="Email" class="form-label">Email</label>
+                            <input type="email" id="Email" name="Email" class="form-control" 
+                                   placeholder="Enter email address" value="@Model?.Email">
+                            @if (ViewData.ModelState["Email"]?.Errors?.Any() == true)
+                            {
+                                <div class="invalid-feedback d-block">
+                                    @ViewData.ModelState["Email"]?.Errors?.First().ErrorMessage
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="Address" class="form-label">Address <small>(optional)</small></label>
+                            <input type="text" id="Address" name="Address" class="form-control" 
+                                   placeholder="Enter street address" value="@Model?.Address">
+                            @if (ViewData.ModelState["Address"]?.Errors?.Any() == true)
+                            {
+                                <div class="invalid-feedback d-block">
+                                    @ViewData.ModelState["Address"]?.Errors?.First().ErrorMessage
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="City" class="form-label">City</label>
+                            <input type="text" id="City" name="City" class="form-control" 
+                                   placeholder="Enter city" value="@Model?.City">
+                            @if (ViewData.ModelState["City"]?.Errors?.Any() == true)
+                            {
+                                <div class="invalid-feedback d-block">
+                                    @ViewData.ModelState["City"]?.Errors?.First().ErrorMessage
+                                </div>
+                            }
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a asp-controller="Supplier" asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fas fa-save me-2"></i> Create Supplier
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var phoneInput = document.querySelector('#Phone');
+            var submitBtn = document.getElementById('submitBtn');
+            
+            if (phoneInput && typeof window.intlTelInput === 'function') {
+                var iti = window.intlTelInput(phoneInput, {
+                    initialCountry: 'pk',
+                    preferredCountries: ['pk', 'us', 'gb', 'ae', 'in', 'sa', 'ca', 'au'],
+                    separateDialCode: true,
+                    utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js',
+                    autoPlaceholder: 'polite',
+                    formatOnDisplay: true,
+                    allowDropdown: true,
+                    nationalMode: false
+                });
+
+                phoneInput._iti = iti;
+
+                function validatePhone() {
+                    var value = phoneInput.value.trim();
+                    var feedback = document.querySelector('#PhoneFeedback');
+                    
+                    if (value === '') {
+                        phoneInput.classList.remove('is-invalid', 'is-valid');
+                        if (feedback) feedback.textContent = '';
+                        return true;
+                    }
+
+                    if (iti.isValidNumber()) {
+                        phoneInput.classList.remove('is-invalid');
+                        phoneInput.classList.add('is-valid');
+                        if (feedback) {
+                            feedback.textContent = '✓ Valid phone number';
+                            feedback.className = 'phone-feedback small mt-1 text-success';
+                        }
+                        return true;
+                    } else {
+                        phoneInput.classList.remove('is-valid');
+                        phoneInput.classList.add('is-invalid');
+                        if (feedback) {
+                            feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                            feedback.className = 'phone-feedback small mt-1 text-danger';
+                        }
+                        return false;
+                    }
+                }
+
+                // Restrict input to digits and plus sign only
+                phoneInput.addEventListener('keypress', function(e) {
+                    var char = String.fromCharCode(e.which);
+                    if (!/[\d+]/.test(char) && e.which !== 8 && e.which !== 46 && e.which !== 37 && e.which !== 39) {
+                        e.preventDefault();
+                    }
+                });
+
+                // Prevent paste of non-numeric characters
+                phoneInput.addEventListener('paste', function(e) {
+                    var pasted = (e.clipboardData || window.clipboardData).getData('text');
+                    var cleaned = pasted.replace(/[^0-9+]/g, '');
+                    if (cleaned !== pasted) {
+                        e.preventDefault();
+                        var start = this.selectionStart;
+                        var end = this.selectionEnd;
+                        var value = this.value;
+                        this.value = value.substring(0, start) + cleaned + value.substring(end);
+                        this.selectionStart = this.selectionEnd = start + cleaned.length;
+                        var event = new Event('input', { bubbles: true });
+                        this.dispatchEvent(event);
+                    }
+                });
+
+                phoneInput.addEventListener('blur', function() {
+                    if (iti.isValidNumber()) {
+                        this.value = iti.getNumber();
+                    }
+                    validatePhone();
+                });
+
+                phoneInput.addEventListener('input', function() {
+                    phoneInput.classList.remove('is-invalid', 'is-valid');
+                    var feedback = document.querySelector('#PhoneFeedback');
+                    if (feedback) feedback.textContent = '';
+                });
+
+                phoneInput.addEventListener('countrychange', function() {
+                    validatePhone();
+                });
+
+                if (phoneInput.value.trim()) {
+                    setTimeout(validatePhone, 500);
+                }
+            }
+
+            // Form validation
+            var form = document.getElementById('createForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    var nameInput = document.getElementById('Name');
+                    
+                    if (!nameInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Supplier name is required');
+                        nameInput.focus();
+                        return false;
+                    }
+                    
+                    if (phoneInput && phoneInput._iti) {
+                        var iti = phoneInput._iti;
+                        var value = phoneInput.value.trim();
+                        
+                        if (value !== '' && !iti.isValidNumber()) {
+                            e.preventDefault();
+                            phoneInput.focus();
+                            var feedback = document.querySelector('#PhoneFeedback');
+                            if (feedback) {
+                                feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                                feedback.className = 'phone-feedback small mt-1 text-danger';
+                            }
+                            phoneInput.classList.add('is-invalid');
+                            return false;
+                        }
+                        
+                        if (value !== '' && iti.isValidNumber()) {
+                            phoneInput.value = iti.getNumber();
+                        }
+                    }
+                    
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Creating...';
+                    submitBtn.disabled = true;
+                });
+            }
+            
+            document.getElementById('Name').focus();
+        });
+    </script>
+}

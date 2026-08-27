@@ -1,0 +1,320 @@
+@model SIOMS.Models.PurchaseOrder
+@{
+    ViewData["Title"] = "Purchase Order Details";
+    ViewData["Subtitle"] = "View purchase order information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var company = ViewBag.CompanySettings as SIOMS.Models.Settings;
+}
+
+@section HeaderButtons {
+    <a asp-controller="Order" asp-action="PurchaseOrders" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Orders
+    </a>
+    @if (Model.Status != "Completed" && Model.Status != "Cancelled")
+    {
+        <a asp-controller="Order" asp-action="EditPurchaseOrder" asp-route-id="@Model.Id" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i> Edit
+        </a>
+    }
+    <button type="button" class="btn btn-outline-primary" id="printBtn">
+        <i class="fas fa-print me-2"></i> Print
+    </button>
+    <button type="button" class="btn btn-outline-success" id="downloadPdfBtn">
+        <i class="fas fa-file-pdf me-2"></i> Download PDF
+    </button>
+}
+
+<div class="container-fluid py-4" id="printableArea">
+    <!-- Order Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">Purchase Order #@Model.OrderNumber</h4>
+                            <p class="text-muted mb-0">Placed on @Model.OrderDate.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            @if (Model.Status == "Completed")
+                            {
+                                <span class="badge bg-success p-2 fs-6">Completed</span>
+                            }
+                            else if (Model.Status == "Processing")
+                            {
+                                <span class="badge bg-info p-2 fs-6">Processing</span>
+                            }
+                            else if (Model.Status == "Cancelled")
+                            {
+                                <span class="badge bg-danger p-2 fs-6">Cancelled</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning p-2 fs-6">@Model.Status</span>
+                            }
+                            @if (Model.PaymentStatus == "Paid")
+                            {
+                                <span class="badge bg-success p-2 fs-6 ms-2">Payment: Paid</span>
+                            }
+                            else if (Model.PaymentStatus == "Partial")
+                            {
+                                <span class="badge bg-warning p-2 fs-6 ms-2">Payment: Partial</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger p-2 fs-6 ms-2">Payment: Unpaid</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Purchaser & Order Info -->
+        <div class="col-lg-4">
+            <!-- Purchaser Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-user-tie me-2"></i> Purchaser Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.Purchaser != null)
+                    {
+                        <h5 class="mb-1">@Model.Purchaser.Name</h5>
+                        @if (!string.IsNullOrEmpty(Model.Purchaser.Phone))
+                        {
+                            <p class="mb-1">
+                                <i class="fas fa-phone me-2 text-muted" style="width:18px;"></i>
+                                <a href="tel:@Model.Purchaser.Phone" class="text-decoration-none">@Model.Purchaser.Phone</a>
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Purchaser.Email))
+                        {
+                            <p class="mb-0">
+                                <i class="fas fa-envelope me-2 text-muted" style="width:18px;"></i>
+                                <a href="mailto:@Model.Purchaser.Email" class="text-decoration-none">@Model.Purchaser.Email</a>
+                            </p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Purchaser not available</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Supplier Information -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-building me-2"></i> Supplier Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.Supplier != null)
+                    {
+                        <h5 class="mb-1">@Model.Supplier.Name</h5>
+                        @if (!string.IsNullOrEmpty(Model.Supplier.Phone))
+                        {
+                            <p class="mb-1">
+                                <i class="fas fa-phone me-2 text-muted" style="width:18px;"></i>
+                                <a href="tel:@Model.Supplier.Phone" class="text-decoration-none">@Model.Supplier.Phone</a>
+                            </p>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.Supplier.Email))
+                        {
+                            <p class="mb-0">
+                                <i class="fas fa-envelope me-2 text-muted" style="width:18px;"></i>
+                                <a href="mailto:@Model.Supplier.Email" class="text-decoration-none">@Model.Supplier.Email</a>
+                            </p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No supplier assigned</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Order Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-info-circle me-2"></i> Order Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Order Number</small>
+                        <p class="mb-0 fw-bold">@Model.OrderNumber</p>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">Order Date</small>
+                        <p class="mb-0">@Model.OrderDate.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                    </div>
+                    @if (Model.ExpectedDeliveryDate.HasValue)
+                    {
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Expected Delivery</small>
+                            <p class="mb-0">@Model.ExpectedDeliveryDate.Value.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                    }
+                    @if (Model.DueDate.HasValue)
+                    {
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Due Date</small>
+                            <p class="mb-0">@Model.DueDate.Value.ToString("MMMM dd, yyyy")</p>
+                        </div>
+                    }
+                    <div class="mb-0">
+                        <small class="text-muted d-block">Created</small>
+                        <p class="mb-0">@Model.CreatedAt.ToString("MMMM dd, yyyy hh:mm tt")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Items & Summary -->
+        <div class="col-lg-8">
+            <!-- Order Items -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-boxes me-2"></i> Order Items (@(Model.Items?.Count ?? 0))
+                    </h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Items != null && Model.Items.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th class="text-center">Quantity</th>
+                                        <th class="text-end">Unit Price</th>
+                                        <th class="text-end">Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        int itemCounter = 1;
+                                    }
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        var itemTotal = item.Quantity * item.UnitPrice;
+                                        <tr>
+                                            <td>@itemCounter</td>
+                                            <td>
+                                                <strong>@item.Product?.Name</strong>
+                                                @if (!string.IsNullOrEmpty(item.Product?.SKU))
+                                                {
+                                                    <br>
+                                                    <small class="text-muted">SKU: @item.Product.SKU</small>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-secondary">@item.Quantity</span>
+                                            </td>
+                                            <td class="text-end">@SIOMS.Helpers.CurrencyFormatter.Format(item.UnitPrice)</td>
+                                            <td class="text-end fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(itemTotal)</td>
+                                        </tr>
+                                        itemCounter++;
+                                    }
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="4" class="text-end fw-bold">Total Amount:</td>
+                                        <td class="text-end fw-bold text-success">@SIOMS.Helpers.CurrencyFormatter.Format(Model.TotalAmount)</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No items found in this order</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-money-bill-wave me-2"></i> Payment Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Total Amount</small>
+                            <h5 class="mb-0">@SIOMS.Helpers.CurrencyFormatter.Format(Model.TotalAmount)</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Paid</small>
+                            <h5 class="mb-0 text-success">@SIOMS.Helpers.CurrencyFormatter.Format(Model.PaidAmount)</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted d-block">Remaining</small>
+                            <h5 class="mb-0 text-danger">@SIOMS.Helpers.CurrencyFormatter.Format(Model.RemainingAmount)</h5>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <hr>
+                        <div>
+                            <small class="text-muted d-block">Notes</small>
+                            <p class="mb-0">@Model.Notes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Print button
+            document.getElementById('printBtn').addEventListener('click', function() {
+                window.print();
+            });
+
+            // Download PDF button
+            document.getElementById('downloadPdfBtn').addEventListener('click', function() {
+                var btn = this;
+                var originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Generating...';
+
+                var element = document.getElementById('printableArea');
+                var opt = {
+                    margin: 0.4,
+                    filename: 'PurchaseOrder-@(Model.OrderNumber).pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                html2pdf().set(opt).from(element).save().then(function () {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }).catch(function () {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                });
+            });
+        });
+    </script>
+}

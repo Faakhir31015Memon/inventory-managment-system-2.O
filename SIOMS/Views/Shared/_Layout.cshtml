@@ -1,0 +1,341 @@
+﻿﻿﻿@using Microsoft.EntityFrameworkCore
+@using SIOMS.Data
+@inject ApplicationDbContext DbContext
+@{
+    var siteSettings = await DbContext.Settings.AsNoTracking().FirstOrDefaultAsync();
+    var siteName = siteSettings?.SiteName ?? "SIOMS";
+    var companyName = siteSettings?.CompanyName ?? "SIOMS Inventory System";
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @siteName</title>
+
+    <!-- AdminLTE CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css" />
+
+    <!-- Layout CSS (Scoped) -->
+    <link rel="stylesheet" href="~/_Layout.cshtml.css" asp-append-version="true" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- OverlayScrollbars -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.1/css/OverlayScrollbars.min.css" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet" />
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="~/admin/css/admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/admin/css/animations.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body class="hold-transition layout-fixed">
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('sioms-sidebar-collapsed') === '1') {
+                    document.body.classList.add('sidebar-collapse');
+                }
+            } catch (err) {
+                // localStorage unavailable - fall back to default (expanded) state.
+            }
+        })();
+    </script>
+    <div class="wrapper">
+        <!-- Sidebar Overlay (for mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Navbar -->
+        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="sidebarToggle" role="button" aria-label="Toggle Sidebar">
+                        <i class="fas fa-bars"></i>
+                    </a>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown">
+                    @await Component.InvokeAsync("AlertBadge")
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link" data-toggle="dropdown" href="#">
+                        <i class="fas fa-user-circle"></i>
+                        <span class="d-none d-sm-inline">Admin</span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a asp-controller="Settings" asp-action="Index" class="dropdown-item">
+                            <i class="fas fa-cog mr-2"></i> Settings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a asp-controller="Admin" asp-action="Logout" class="dropdown-item text-danger">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Sidebar Container -->
+        <aside class="main-sidebar sidebar-dark-primary elevation-4" id="mainSidebar">
+            <div class="brand-link d-flex align-items-center justify-content-between">
+                <a asp-controller="Dashboard" asp-action="Index" class="d-flex align-items-center flex-grow-1 text-decoration-none">
+                    <img src="https://adminlte.io/themes/v3/dist/img/AdminLTELogo.png" alt="Logo"
+                         class="brand-image img-circle elevation-3" style="opacity: .8">
+                    <span class="brand-text font-weight-light">@siteName</span>
+                </a>
+            </div>
+
+            <div class="sidebar">
+                <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+                    <div class="image">
+                        <img src="https://adminlte.io/themes/v3/dist/img/user2-160x160.jpg"
+                             class="img-circle elevation-2" alt="User Image">
+                    </div>
+                    <div class="info">
+                        <a href="" class="d-block">Admin User</a>
+                    </div>
+                </div>
+
+                <nav class="mt-2">
+                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu">
+                        <!-- Dashboard -->
+                        <li class="nav-item">
+                            <a asp-controller="Dashboard" asp-action="Index"
+                               class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                                <i class="nav-icon fas fa-tachometer-alt"></i>
+                                <p>Dashboard</p>
+                            </a>
+                        </li>
+
+                        <!-- Products -->
+                        @{
+                            var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+                            var isProductsActive = currentController == "Product";
+                        }
+                        <li class="nav-item has-treeview @(isProductsActive ? "menu-open" : "")">
+                            <a href="#" class="nav-link @(isProductsActive ? "active" : "")">
+                                <i class="nav-icon fas fa-box"></i>
+                                <p>
+                                    Products
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-controller="Product" asp-action="Index"
+                                       class="nav-link @(currentController == "Product" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>All Products</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Product" asp-action="Create"
+                                       class="nav-link @(currentController == "Product" && ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Add Product</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Categories -->
+                        <li class="nav-item">
+                            <a asp-controller="Category" asp-action="Index"
+                               class="nav-link @(currentController == "Category" ? "active" : "")">
+                                <i class="nav-icon fas fa-tags"></i>
+                                <p>Categories</p>
+                            </a>
+                        </li>
+
+                        <!-- Purchaser -->
+                        <li class="nav-item">
+                            <a asp-controller="Purchaser" asp-action="Index"
+                               class="nav-link @(currentController == "Purchaser" ? "active" : "")">
+                                <i class="nav-icon fas fa-tags"></i>
+                                <p>Purchaser</p>
+                            </a>
+                        </li>
+
+                        <!-- Suppliers -->
+                        <li class="nav-item">
+                            <a asp-controller="Supplier" asp-action="Index"
+                               class="nav-link @(currentController == "Supplier" ? "active" : "")">
+                                <i class="nav-icon fas fa-truck"></i>
+                                <p>Suppliers</p>
+                            </a>
+                        </li>
+
+                        <!-- Customers -->
+                        <li class="nav-item">
+                            <a asp-controller="Customer" asp-action="Index"
+                               class="nav-link @(currentController == "Customer" ? "active" : "")">
+                                <i class="nav-icon fas fa-users"></i>
+                                <p>Customers</p>
+                            </a>
+                        </li>
+
+                        <!-- Orders -->
+                        @{
+                            var isOrdersActive = currentController == "Order";
+                        }
+                        <li class="nav-item has-treeview @(isOrdersActive ? "menu-open" : "")">
+                            <a href="#" class="nav-link @(isOrdersActive ? "active" : "")">
+                                <i class="nav-icon fas fa-shopping-cart"></i>
+                                <p>
+                                    Orders
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-controller="Order" asp-action="SalesOrders"
+                                       class="nav-link @(currentController == "Order" && ViewContext.RouteData.Values["action"]?.ToString() == "SalesOrders" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Sales Orders</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Order" asp-action="PurchaseOrders"
+                                       class="nav-link @(currentController == "Order" && ViewContext.RouteData.Values["action"]?.ToString() == "PurchaseOrders" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Purchase Orders</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Reports -->
+                        @{
+                            var isReportsActive = currentController == "Report";
+                        }
+                        <li class="nav-item has-treeview @(isReportsActive ? "menu-open" : "")">
+                            <a href="#" class="nav-link @(isReportsActive ? "active" : "")">
+                                <i class="nav-icon fas fa-chart-bar"></i>
+                                <p>
+                                    Reports
+                                    <i class="right fas fa-angle-left"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a asp-controller="Report" asp-action="Index"
+                                       class="nav-link @(currentController == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Reports Overview</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Report" asp-action="Sales"
+                                       class="nav-link @(currentController == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Sales" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Sales Report</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-controller="Report" asp-action="Purchases"
+                                       class="nav-link @(currentController == "Report" && ViewContext.RouteData.Values["action"]?.ToString() == "Purchases" ? "active" : "")">
+                                        <i class="far fa-circle nav-icon"></i>
+                                        <p>Purchase Report</p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Alerts -->
+                        <li class="nav-item">
+                            <a asp-controller="Alert" asp-action="Index"
+                               class="nav-link @(currentController == "Alert" ? "active" : "")">
+                                <i class="nav-icon fas fa-exclamation-triangle"></i>
+                                <p>Alerts</p>
+                            </a>
+                        </li>
+
+                        <!-- Settings -->
+                        <li class="nav-item">
+                            <a asp-controller="Settings" asp-action="Index"
+                               class="nav-link @(currentController == "Settings" ? "active" : "")">
+                                <i class="nav-icon fas fa-cog"></i>
+                                <p>Settings</p>
+                            </a>
+                        </li>
+
+                        <!-- Logout -->
+                        <li class="nav-item">
+                            <a asp-controller="Admin" asp-action="Logout" class="nav-link text-danger">
+                                <i class="nav-icon fas fa-sign-out-alt"></i>
+                                <p>Logout</p>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <div class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1 class="m-0 animate-fade-up">
+                                @ViewData["Title"]
+                            </h1>
+                        </div>
+                        <div class="col-sm-6 text-right">
+                            <div class="header-buttons d-flex flex-wrap align-items-center gap-2">
+                                @await RenderSectionAsync("HeaderButtons", required: false)
+                            </div>
+                            <ol class="breadcrumb float-sm-right mt-2">
+                                <li class="breadcrumb-item">
+                                    <a asp-controller="Dashboard" asp-action="Index">Home</a>
+                                </li>
+                                <li class="breadcrumb-item active">
+                                    @ViewData["Title"]
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <section class="content">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="float-right d-none d-sm-block">
+                <b>Version</b> 1.0.0
+            </div>
+            <strong>Copyright &copy; @DateTime.Now.Year <a href="#">@companyName</a>.</strong> All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.1/js/OverlayScrollbars.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <!-- External JS -->
+    <script src="~/admin/js/admin-core.js" asp-append-version="true"></script>
+    @* <script src="~/admin/js/animations.js" asp-append-version="true"></script> *@
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

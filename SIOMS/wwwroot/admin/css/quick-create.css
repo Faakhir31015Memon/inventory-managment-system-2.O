@@ -1,0 +1,72 @@
+/* SIOMS - Quick Create Searchable Dropdown styling
+   Scoped to .qc-* classes only, does not touch any existing selectors. */
+
+.qc-select-wrapper {
+    position: relative;
+}
+
+.qc-input-group {
+    position: relative;
+}
+
+.qc-search-input {
+    cursor: text;
+    background-color: #fff;
+}
+
+.qc-dropdown-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+    max-height: 220px;
+    overflow-y: auto;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.qc-dropdown-list.qc-open {
+    display: block;
+}
+
+.qc-dropdown-item {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.qc-dropdown-item:hover {
+    background-color: #f1f5ff;
+}
+
+.qc-dropdown-item.qc-dropdown-empty {
+    cursor: default;
+    font-style: italic;
+}
+
+.qc-dropdown-item.qc-dropdown-empty:hover {
+    background-color: transparent;
+}
+
+.qc-create-item {
+    color: #0d6efd;
+    font-weight: 600;
+    border-top: 1px solid #eef1f5;
+}
+
+.qc-create-item:hover {
+    background-color: #e7f0ff;
+}
+
+.qc-inline-create-form {
+    cursor: default;
+}
+
+.qc-inline-create-form .form-label {
+    color: #495057;
+}

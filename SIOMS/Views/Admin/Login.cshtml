@@ -1,0 +1,168 @@
+@model SIOMS.ViewModels.AdminLoginViewModel
+@using Microsoft.EntityFrameworkCore
+@using SIOMS.Data
+@inject ApplicationDbContext DbContext
+@{
+    ViewData["Title"] = "Admin Login";
+    Layout = null;
+
+    var siteSettings = await DbContext.Settings.AsNoTracking().FirstOrDefaultAsync();
+    var siteName = siteSettings?.SiteName ?? "SIOMS";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - @siteName</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Login CSS -->
+    <link rel="stylesheet" href="~/admin/css/login.css" asp-append-version="true" />
+    
+    
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <!-- Logo and Brand -->
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-boxes"></i>
+                </div>
+                <h1 class="app-name">@siteName</h1>
+                <p class="app-tagline">Smart Inventory & Order Management System</p>
+            </div>
+            
+            <!-- Form Header -->
+            <div class="form-header">
+                <h2>Admin Portal</h2>
+                <p>Sign in to access your dashboard</p>
+            </div>
+            
+            <!-- Error Messages -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger alert-custom">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Invalid username or password. Please try again.
+                </div>
+            }
+            
+            <!-- Login Form -->
+            <form method="post" asp-action="Login" id="loginForm">
+                @Html.AntiForgeryToken()
+                
+                <!-- Username Field -->
+                <div class="mb-4 position-relative">
+                    <label asp-for="Username" class="form-label fw-semibold">Username or Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-user text-muted"></i>
+                        </span>
+                        <input asp-for="Username" class="form-control" placeholder="Enter username or email" 
+       autocomplete="username" required autofocus />
+                    </div>
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+                
+                <!-- Password Field -->
+                <div class="mb-4 position-relative">
+                    <label asp-for="Password" class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light">
+                            <i class="fas fa-lock text-muted"></i>
+                        </span>
+                        <input asp-for="Password" type="password" class="form-control" 
+                               placeholder="Enter password" autocomplete="current-password" required />
+                        <button type="button" class="btn btn-outline-secondary password-toggle" 
+                                onclick="togglePassword()">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                
+                <div class="text-end mb-3">
+    <a asp-action="ForgotPassword" class="text-decoration-none small">Forgot password?</a>
+</div>
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt me-2"></i>
+                    <span id="btnText">Sign In</span>
+                    <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+        function togglePassword() {
+            const passwordInput = document.querySelector('input[name="Password"]');
+            const toggleBtn = document.querySelector('.password-toggle i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.classList.remove('fa-eye');
+                toggleBtn.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.classList.remove('fa-eye-slash');
+                toggleBtn.classList.add('fa-eye');
+            }
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('btnSpinner');
+            
+            btn.disabled = true;
+            btnText.textContent = 'Signing In...';
+            spinner.classList.remove('d-none');
+            
+            const username = document.querySelector('input[name="Username"]').value.trim();
+            const password = document.querySelector('input[name="Password"]').value.trim();
+            
+            if (!username || !password) {
+                e.preventDefault();
+                alert('Please fill in both username and password fields.');
+                
+                btn.disabled = false;
+                btnText.textContent = 'Sign In';
+                spinner.classList.add('d-none');
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('input[name="Username"]').focus();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('error')) {
+                setTimeout(() => {
+                    alert('Please login to access the dashboard.');
+                }, 500);
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.target.matches('button')) {
+                document.getElementById('loginForm').submit();
+            }
+        });
+    </script>
+</body>
+</html>

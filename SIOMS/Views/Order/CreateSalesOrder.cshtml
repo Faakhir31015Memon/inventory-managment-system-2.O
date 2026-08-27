@@ -1,0 +1,432 @@
+@model SIOMS.Models.SalesOrder
+@{
+    ViewData["Title"] = "Create Sales Order";
+    ViewData["Subtitle"] = "Create a new sales order";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/admin/css/quick-create.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css" />
+    <style>
+        .iti {
+            width: 100%;
+        }
+        .iti__flag-container {
+            z-index: 10;
+        }
+        .phone-input-wrapper {
+            position: relative;
+        }
+        .phone-feedback.text-danger {
+            color: #dc3545 !important;
+        }
+        .phone-feedback.text-success {
+            color: #198754 !important;
+        }
+    </style>
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Create New Sales Order</h4>
+                </div>
+                <div class="card-body">
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form id="salesOrderForm" asp-controller="Order" asp-action="CreateSalesOrder" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="OrderNumber" />
+                        <div class="row">
+                            <!-- Left Column - Order Details -->
+                            <div class="col-lg-4">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Order Details</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <!-- ✅ Customer - REQUIRED - searchable + Quick Create -->
+                                        <div class="mb-3">
+                                            <label asp-for="CustomerId" class="form-label">Customer *</label>
+                                            <div class="qc-select-wrapper" data-quick-endpoint="@Url.Action("QuickCreate", "Customer")" data-quick-label="Customer"
+                                                 data-secondary-field="phone" data-secondary-label="Contact Number" data-secondary-type="tel" data-secondary-required="false">
+                                                <select asp-for="CustomerId" class="form-select qc-native-select" required>
+                                                    <option value="">Select Customer</option>
+                                                    @foreach (var customer in ViewBag.Customers)
+                                                    {
+                                                        <option value="@customer.Id">@customer.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                                        </div>
+
+                                        <!-- ✅ Supplier - OPTIONAL - searchable + Quick Create -->
+                                       <div class="mb-3">
+                                            <label asp-for="SupplierId" class="form-label">Supplier (Optional)</label>
+                                            <div class="qc-select-wrapper" data-quick-endpoint="@Url.Action("QuickCreate", "Supplier")" data-quick-label="Supplier"
+                                                 data-secondary-field="phone" data-secondary-label="Contact Number" data-secondary-type="tel" data-secondary-required="true">
+                                                <select asp-for="SupplierId" class="form-select qc-native-select">
+                                                    <option value="">Select Supplier (Optional)</option>
+                                                    @foreach (var supplier in ViewBag.Suppliers)
+                                                    {
+                                                        <option value="@supplier.Id">@supplier.Name</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                            <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="OrderDate" class="form-label">Order Date *</label>
+                                            <input asp-for="OrderDate" type="date" class="form-control" required>
+                                            <span asp-validation-for="OrderDate" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="DueDate" class="form-label">Payment Due Date
+                                                (Optional)</label>
+                                                <input asp-for="DueDate" type="date" class="form-control">
+                                                <span asp-validation-for="DueDate" class="text-danger small"></span>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label asp-for="DiscountPercentage" class="form-label">Discount
+                                                        %</label>
+                                                        <input asp-for="DiscountPercentage" type="number" class="form-control"
+                                                               min="0" max="100" step="0.01" value="0">
+                                                        <span asp-validation-for="DiscountPercentage"
+                                                              class="text-danger small"></span>
+                                                    </div>
+
+                                                    <div class="col-md-6 mb-3">
+                                                        <label asp-for="TaxAmount" class="form-label">Tax Amount</label>
+                                                        <input asp-for="TaxAmount" type="number" class="form-control" min="0"
+                                                               step="0.01" value="0">
+                                                        <span asp-validation-for="TaxAmount" class="text-danger small"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label asp-for="Notes" class="form-label">Notes</label>
+                                                    <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+                                                    <span asp-validation-for="Notes" class="text-danger small"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Summary Card - FIXED: Grand Total inline -->
+                                        <div class="card">
+                                            <div class="card-header">
+                                                <h6 class="card-title mb-0">Order Summary</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Total Items:</span>
+                                                    <span id="totalItems" class="fw-bold">0</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Subtotal:</span>
+                                                    <span id="subtotal"
+                                                          class="fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(0)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Discount (<span id="discountPercent">0</span>%):</span>
+                                                    <span id="discountAmount" class="fw-bold text-danger">-@SIOMS.Helpers.CurrencyFormatter.Format(0)</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Tax:</span>
+                                                    <span id="taxAmount"
+                                                          class="fw-bold">@SIOMS.Helpers.CurrencyFormatter.Format(0)</span>
+                                                </div>
+                                                <hr>
+                                                <!-- FIXED: Added white-space:nowrap to keep Grand Total on one line -->
+                                                <div class="d-flex justify-content-between">
+                                                    <h6>Grand Total:</h6>
+                                                    <h5 id="grandTotal" class="text-success" style="white-space:nowrap;">
+                                                        @SIOMS.Helpers.CurrencyFormatter.Format(0)
+                                                    </h5>
+                                                </div>
+                                                <input type="hidden" id="totalAmount" name="TotalAmount" value="0" />
+                                                <input type="hidden" id="grandTotalValue" name="GrandTotal" value="0" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right Column - Order Items -->
+                                    <div class="col-lg-8">
+                                        <div class="card">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h6 class="card-title mb-0">Order Items</h6>
+                                                <button type="button" class="btn btn-sm btn-primary" id="addItemBtn">
+                                                    <i class="fas fa-plus me-1"></i> Add Item
+                                                </button>
+                                            </div>
+                                            <div class="card-body">
+                                                <div id="orderItemsContainer">
+                                                    <!-- Items will be added dynamically here -->
+                                                </div>
+                                                <div id="noItemsMessage" class="text-center py-5">
+                                                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                                    <h5 class="text-muted">No items added</h5>
+                                                    <p class="text-muted">Click "Add Item" to start adding products.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a asp-controller="Order" asp-action="SalesOrders" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i> Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i> Create Sales Order
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item Template (Hidden) - FIXED: No currency symbol in Total field -->
+            <div id="itemTemplate" class="d-none">
+                <div class="order-item card mb-3" data-index="{index}">
+                    <div class="card-body">
+                        <div class="row align-items-end">
+                            <!-- Product -->
+                            <div class="col-md-4 mb-2 mb-md-0">
+                                <label class="form-label">Product *</label>
+                                <select class="form-select product-select" name="items[{index}].ProductId" required>
+                                    <option value="">Select Product</option>
+                                    @foreach (var product in ViewBag.Products)
+                                    {
+                                        <option value="@product.Id" data-price="@product.Price" data-stock="@product.StockQuantity">
+                                            @product.Name (Stock: @product.StockQuantity)
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <!-- Quantity -->
+                            <div class="col-md-2 mb-2 mb-md-0">
+                                <label class="form-label">Quantity *</label>
+                                <div class="d-flex align-items-center gap-1">
+                                    <input type="number" class="form-control quantity-input" name="items[{index}].Quantity" min="1" value="1" required>
+                                    <small class="stock-info text-muted" style="font-size:0.65rem;white-space:nowrap;min-width:50px;">Stock: 0</small>
+                                </div>
+                            </div>
+                            <!-- Unit Price (auto-filled from Product's default selling price, editable per transaction) -->
+                            <div class="col-md-2 mb-2 mb-md-0">
+                                <label class="form-label">Unit Price *</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">@SIOMS.Helpers.CurrencyFormatter.Symbol</span>
+                                    <input type="number" class="form-control price-input" name="items[{index}].UnitPrice" min="0.01"
+                                           step="0.01" value="0" required>
+                                </div>
+                            </div>
+                            <!-- Total - FIXED: No input-group, just plain input -->
+                            <div class="col-md-2 mb-2 mb-md-0">
+                                <label class="form-label">Total</label>
+                                <input type="text" class="form-control total-price" readonly value="0.00" style="font-weight:600; background:#f0f7ff; text-align:right;">
+                            </div>
+                            <!-- Remove Button -->
+                            <div class="col-md-2 text-center">
+                                <button type="button" class="btn btn-outline-danger remove-item-btn">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @section Scripts {
+                @{
+                    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+                }
+                <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+                <script src="~/admin/js/quick-create.js" asp-append-version="true"></script>
+                <script>
+                    @* const currencySymbol = '@SIOMS.Helpers.CurrencyFormatter.Symbol'; *@
+                    const currencySymbol = '@Html.Raw(SIOMS.Helpers.CurrencyFormatter.Symbol)';
+                </script>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        let itemIndex = 0;
+                        const itemsContainer = document.getElementById('orderItemsContainer');
+                        const noItemsMessage = document.getElementById('noItemsMessage');
+                        const itemTemplate = document.getElementById('itemTemplate').innerHTML;
+                        const form = document.getElementById('salesOrderForm');
+                        const discountInput = document.getElementById('DiscountPercentage');
+                        const taxInput = document.getElementById('TaxAmount');
+
+                        // ✅ Add item button click handler
+                        document.getElementById('addItemBtn').addEventListener('click', function () {
+                            addNewItem();
+                        });
+
+                        addNewItem();
+                        [discountInput, taxInput].forEach(input => {
+                            input.addEventListener('input', updateSummary);
+                        });
+
+                        function addNewItem() {
+                            // ✅ Check if last item is empty - don't add new one
+                            const existingItems = itemsContainer.querySelectorAll('.order-item');
+                            if (existingItems.length > 0) {
+                                const lastItem = existingItems[existingItems.length - 1];
+                                const productSelect = lastItem.querySelector('.product-select');
+                                if (productSelect && !productSelect.value) {
+                                    alert('Please select a product for the current item first.');
+                                    return;
+                                }
+                            }
+
+                            noItemsMessage.style.display = 'none';
+                            const newItem = itemTemplate.replace(/{index}/g, itemIndex);
+                            const itemElement = document.createElement('div');
+                            itemElement.innerHTML = newItem;
+                            itemsContainer.appendChild(itemElement);
+
+                            const newItemElement = itemsContainer.lastElementChild;
+                            setupItemEvents(newItemElement);
+
+                            itemIndex++;
+                            updateSummary();
+                        }
+
+                        function setupItemEvents(itemElement) {
+                            const productSelect = itemElement.querySelector('.product-select');
+                            const priceInput = itemElement.querySelector('.price-input');
+                            const quantityInput = itemElement.querySelector('.quantity-input');
+                            const stockInfo = itemElement.querySelector('.stock-info');
+
+                            productSelect.addEventListener('change', function () {
+                                const selectedOption = this.options[this.selectedIndex];
+                                if (selectedOption.value && selectedOption.dataset.price) {
+                                    priceInput.value = parseFloat(selectedOption.dataset.price).toFixed(2);
+                                    stockInfo.textContent = 'Stock: ' + selectedOption.dataset.stock;
+                                    calculateItemTotal(itemElement);
+                                    updateSummary();
+                                } else {
+                                    stockInfo.textContent = 'Stock: 0';
+                                }
+                            });
+
+                            quantityInput.addEventListener('input', function () {
+                                calculateItemTotal(itemElement);
+                                updateSummary();
+                            });
+
+                            // ✅ Unit Price is editable per-transaction; recalculate on manual edit too.
+                            // This never writes back to the Product's default selling price.
+                            priceInput.addEventListener('input', function () {
+                                calculateItemTotal(itemElement);
+                                updateSummary();
+                            });
+
+                            const removeBtn = itemElement.querySelector('.remove-item-btn');
+                            removeBtn.addEventListener('click', function () {
+                                itemElement.remove();
+                                updateSummary();
+                                if (itemsContainer.children.length === 0) {
+                                    noItemsMessage.style.display = 'block';
+                                }
+                            });
+                        }
+
+                        // ✅ FIXED: No currency symbol in total display
+                        function calculateItemTotal(itemElement) {
+                            const quantity = parseFloat(itemElement.querySelector('.quantity-input').value) || 0;
+                            const price = parseFloat(itemElement.querySelector('.price-input').value) || 0;
+                            const total = quantity * price;
+                            itemElement.querySelector('.total-price').value = total.toFixed(2);
+                        }
+
+                        function updateSummary() {
+                            let totalItems = 0;
+                            let subtotal = 0;
+
+                            document.querySelectorAll('.order-item').forEach(item => {
+                                const productSelect = item.querySelector('.product-select');
+                                // ✅ Only count items with valid product selected
+                                if (productSelect && productSelect.value) {
+                                    const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
+                                    const price = parseFloat(item.querySelector('.price-input').value) || 0;
+                                    totalItems += quantity;
+                                    subtotal += quantity * price;
+                                }
+                            });
+
+                            const discountPercent = parseFloat(discountInput.value) || 0;
+                            const discountAmount = subtotal * (discountPercent / 100);
+                            const taxAmount = parseFloat(taxInput.value) || 0;
+                            const totalAmount = subtotal - discountAmount;
+                            const grandTotal = totalAmount + taxAmount;
+
+                            document.getElementById('totalItems').textContent = totalItems;
+                            document.getElementById('subtotal').textContent = currencySymbol + ' ' + subtotal.toFixed(2);
+                            document.getElementById('discountPercent').textContent = discountPercent.toFixed(2);
+                            document.getElementById('discountAmount').textContent = '-' + currencySymbol + ' ' + discountAmount.toFixed(2);
+                            document.getElementById('taxAmount').textContent = currencySymbol + ' ' + taxAmount.toFixed(2);
+                            document.getElementById('grandTotal').textContent = currencySymbol + ' ' + grandTotal.toFixed(2);
+
+                            document.getElementById('totalAmount').value = totalAmount.toFixed(2);
+                            document.getElementById('grandTotalValue').value = grandTotal.toFixed(2);
+                        }
+
+                        form.addEventListener('submit', function (e) {
+                            // ✅ CustomerId select is visually hidden behind the searchable
+                            // Quick Create widget, so the browser's native "required" bubble
+                            // can't show on it - validate it here instead.
+                            const customerSelect = document.getElementById('CustomerId');
+                            if (customerSelect && !customerSelect.value) {
+                                e.preventDefault();
+                                alert('Please select a customer.');
+                                return;
+                            }
+
+                            const items = itemsContainer.querySelectorAll('.order-item');
+                            if (items.length === 0) {
+                                e.preventDefault();
+                                alert('Please add at least one item to the order.');
+                                return;
+                            }
+
+                            let hasError = false;
+                            items.forEach(item => {
+                                const productSelect = item.querySelector('.product-select');
+                                if (!productSelect.value) {
+                                    hasError = true;
+                                    productSelect.classList.add('is-invalid');
+                                } else {
+                                    productSelect.classList.remove('is-invalid');
+                                }
+                            });
+
+                            if (hasError) {
+                                e.preventDefault();
+                                alert('Please select a product for all items.');
+                            }
+                        });
+
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('OrderDate').value = today;
+                    });
+                </script>
+            }

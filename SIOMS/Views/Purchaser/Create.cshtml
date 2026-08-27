@@ -1,0 +1,249 @@
+@model SIOMS.Models.Purchaser
+@{
+    ViewData["Title"] = "Create Purchaser";
+    ViewData["Subtitle"] = "Add a new purchaser";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <a asp-controller="Purchaser" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to List
+    </a>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css" />
+    <style>
+        .iti {
+            width: 100%;
+        }
+        .iti__flag-container {
+            z-index: 10;
+        }
+        .phone-input-wrapper {
+            position: relative;
+        }
+        .phone-feedback.text-danger {
+            color: #dc3545 !important;
+        }
+        .phone-feedback.text-success {
+            color: #198754 !important;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col-lg-6 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-plus me-2"></i> Create New Purchaser
+                </h5>
+            </div>
+            <div class="card-body">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i> Please fix the following errors:</h6>
+                        <ul class="mb-0">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <form method="post" asp-controller="Purchaser" asp-action="Create" id="createForm">
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Purchaser Name *</label>
+                        <input asp-for="Name" class="form-control" placeholder="Enter purchaser name" required autofocus>
+                        <span asp-validation-for="Name" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Phone" class="form-label">Contact Number *</label>
+                        <div class="phone-input-wrapper">
+                            <input asp-for="Phone" type="tel" class="form-control phone-input" id="Phone" placeholder="Enter contact number" required>
+                            <div id="PhoneFeedback" class="phone-feedback small mt-1"></div>
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" type="email" class="form-control" placeholder="Enter email address">
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Address" class="form-label">Address<small> (optional)</small></label>
+                        <textarea asp-for="Address" class="form-control" rows="2" placeholder="Enter address"></textarea>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a asp-controller="Purchaser" asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-times me-2"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-2"></i> Create Purchaser
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var phoneInput = document.querySelector('#Phone');
+            var submitBtn = document.getElementById('submitBtn');
+            
+            if (phoneInput && typeof window.intlTelInput === 'function') {
+                var iti = window.intlTelInput(phoneInput, {
+                    initialCountry: 'pk',
+                    preferredCountries: ['pk', 'us', 'gb', 'ae', 'in', 'sa', 'ca', 'au'],
+                    separateDialCode: true,
+                    utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js',
+                    autoPlaceholder: 'polite',
+                    formatOnDisplay: true,
+                    allowDropdown: true,
+                    nationalMode: false
+                });
+
+                phoneInput._iti = iti;
+
+                function validatePhone() {
+                    var value = phoneInput.value.trim();
+                    var feedback = document.querySelector('#PhoneFeedback');
+                    
+                    if (value === '') {
+                        phoneInput.classList.remove('is-invalid', 'is-valid');
+                        if (feedback) feedback.textContent = '';
+                        return true;
+                    }
+
+                    if (iti.isValidNumber()) {
+                        phoneInput.classList.remove('is-invalid');
+                        phoneInput.classList.add('is-valid');
+                        if (feedback) {
+                            feedback.textContent = '✓ Valid phone number';
+                            feedback.className = 'phone-feedback small mt-1 text-success';
+                        }
+                        return true;
+                    } else {
+                        phoneInput.classList.remove('is-valid');
+                        phoneInput.classList.add('is-invalid');
+                        if (feedback) {
+                            feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                            feedback.className = 'phone-feedback small mt-1 text-danger';
+                        }
+                        return false;
+                    }
+                }
+
+                // Restrict input to digits and plus sign only
+                phoneInput.addEventListener('keypress', function(e) {
+                    var char = String.fromCharCode(e.which);
+                    if (!/[\d+]/.test(char) && e.which !== 8 && e.which !== 46 && e.which !== 37 && e.which !== 39) {
+                        e.preventDefault();
+                    }
+                });
+
+                // Prevent paste of non-numeric characters
+                phoneInput.addEventListener('paste', function(e) {
+                    var pasted = (e.clipboardData || window.clipboardData).getData('text');
+                    var cleaned = pasted.replace(/[^0-9+]/g, '');
+                    if (cleaned !== pasted) {
+                        e.preventDefault();
+                        var start = this.selectionStart;
+                        var end = this.selectionEnd;
+                        var value = this.value;
+                        this.value = value.substring(0, start) + cleaned + value.substring(end);
+                        this.selectionStart = this.selectionEnd = start + cleaned.length;
+                        var event = new Event('input', { bubbles: true });
+                        this.dispatchEvent(event);
+                    }
+                });
+
+                phoneInput.addEventListener('blur', function() {
+                    if (iti.isValidNumber()) {
+                        this.value = iti.getNumber();
+                    }
+                    validatePhone();
+                });
+
+                phoneInput.addEventListener('input', function() {
+                    phoneInput.classList.remove('is-invalid', 'is-valid');
+                    var feedback = document.querySelector('#PhoneFeedback');
+                    if (feedback) feedback.textContent = '';
+                });
+
+                phoneInput.addEventListener('countrychange', function() {
+                    validatePhone();
+                });
+
+                if (phoneInput.value.trim()) {
+                    setTimeout(validatePhone, 500);
+                }
+            }
+
+            // Form validation
+            var form = document.getElementById('createForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    var nameInput = document.getElementById('Name');
+                    
+                    if (!nameInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Purchaser name is required');
+                        nameInput.focus();
+                        return false;
+                    }
+                    
+                    if (phoneInput && phoneInput._iti) {
+                        var iti = phoneInput._iti;
+                        var value = phoneInput.value.trim();
+                        
+                        if (value !== '' && !iti.isValidNumber()) {
+                            e.preventDefault();
+                            phoneInput.focus();
+                            var feedback = document.querySelector('#PhoneFeedback');
+                            if (feedback) {
+                                feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                                feedback.className = 'phone-feedback small mt-1 text-danger';
+                            }
+                            phoneInput.classList.add('is-invalid');
+                            return false;
+                        }
+                        
+                        // Set the full international number for submission
+                        if (value !== '' && iti.isValidNumber()) {
+                            phoneInput.value = iti.getNumber();
+                        }
+                    }
+                    
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Creating...';
+                    submitBtn.disabled = true;
+                });
+            }
+            
+            document.getElementById('Name').focus();
+        });
+    </script>
+}

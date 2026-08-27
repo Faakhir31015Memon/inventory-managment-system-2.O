@@ -1,0 +1,527 @@
+﻿/* ========================================
+   LAYOUT FOUNDATION
+   ======================================== */
+
+/* ===== Root Variables ===== */
+:root {
+    --sidebar-width: 250px;
+    --sidebar-collapsed: 70px;
+    --transition-speed: 0.3s;
+}
+
+/* ===== Global Reset ===== */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #f4f6f9;
+    color: #1a2332;
+    line-height: 1.6;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+/* Safety net: no image should ever be able to force horizontal scroll */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ========================================
+   WRAPPER
+   ======================================== */
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* ========================================
+   CONTENT WRAPPER
+   ======================================== */
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f4f6f9;
+    transition: margin-left var(--transition-speed) ease;
+    min-height: calc(100vh - 56px);
+}
+
+/* ========================================
+   NAVBAR - Hamburger button always visible
+   ======================================== */
+.main-header .navbar-nav .nav-link {
+    cursor: pointer;
+}
+
+#sidebarToggle {
+    font-size: 1.2rem;
+    padding: 0.5rem 0.75rem;
+    color: #1a2332;
+}
+
+#sidebarToggle:hover {
+    color: #4e73df;
+}
+
+/* ========================================
+   SIDEBAR
+   ======================================== */
+.main-sidebar {
+    background: linear-gradient(180deg, #1a2332 0%, #2c3e50 100%);
+    transition: width var(--transition-speed) ease, transform var(--transition-speed) ease;
+    z-index: 1050;
+    width: var(--sidebar-width);
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+}
+
+/* Sidebar should stay in place */
+.main-sidebar,
+body.sidebar-collapse .main-sidebar {
+    margin-left: 0 !important;
+    transform: none !important;
+    left: 0 !important;
+}
+
+/* Text/labels that should disappear in icon-only mode */
+.main-sidebar .brand-text,
+.main-sidebar .user-panel .info,
+.main-sidebar .nav-sidebar > .nav-item > .nav-link p,
+.main-sidebar .nav-treeview,
+.main-sidebar .nav-link .right {
+    white-space: nowrap;
+    transition: opacity var(--transition-speed) ease;
+}
+
+/* Brand Link */
+.brand-link {
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-text {
+    font-weight: 700;
+    font-size: 1.2rem;
+    letter-spacing: -0.5px;
+    color: rgba(121, 109, 109, 0.9);
+}
+
+.brand-link a {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.brand-link a:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* User Panel */
+.user-panel {
+    padding: 15px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.user-panel .info a {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.user-panel .info a:hover {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Sidebar Navigation */
+.nav-sidebar .nav-link {
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin: 2px 8px;
+    transition: all var(--transition-speed) ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.75);
+    position: relative;
+}
+
+.nav-sidebar .nav-link i {
+    width: 24px;
+    text-align: center;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+}
+
+.nav-sidebar .nav-link.active {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.nav-sidebar .nav-link.active i {
+    color: #fff;
+}
+
+.nav-sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.nav-sidebar .nav-link:hover i {
+    color: #fff;
+}
+
+/* Treeview Sub-menu */
+.nav-treeview {
+    transition: all var(--transition-speed) ease;
+    display: none;
+}
+
+.nav-treeview .nav-link {
+    padding: 6px 16px 6px 40px;
+    font-size: 0.85rem;
+}
+
+.nav-treeview .nav-link i {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.nav-treeview .nav-link.active {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.nav-treeview .nav-link.active i {
+    color: #fff;
+}
+
+/* Menu open state */
+.menu-open .nav-treeview {
+    display: block !important;
+}
+
+/* Treeview toggle arrow rotation */
+.nav-sidebar .nav-link .right {
+    transition: transform var(--transition-speed) ease;
+    margin-left: auto;
+}
+
+.menu-open > .nav-link .right {
+    transform: rotate(-90deg);
+}
+
+/* ========================================
+   SIDEBAR OVERLAY (Mobile)
+   ======================================== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    cursor: pointer;
+}
+
+.sidebar-overlay.active {
+    display: block !important;
+}
+
+/* ========================================
+   CONTENT HEADER
+   ======================================== */
+.content-header {
+    padding: 18px 0;
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.content-header h1 {
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: #1a2332;
+    margin: 0;
+}
+
+.content-header .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 5px 0 0 0;
+    font-size: 0.85rem;
+}
+
+/* Header action buttons - FIX: inline on desktop, wrap on mobile */
+.content-header .col-sm-6.text-right {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    row-gap: 8px;
+}
+
+.content-header .col-sm-6.text-right .breadcrumb {
+    margin: 0;
+    flex-basis: 100%;
+    justify-content: flex-end;
+    display: flex;
+}
+
+/* Fix: Header buttons should stay in one row on desktop */
+@media (min-width: 576px) {
+    .content-header .col-sm-6.text-right {
+        flex-wrap: nowrap;
+    }
+    .content-header .col-sm-6.text-right .breadcrumb {
+        flex-basis: auto;
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 575px) {
+    .content-header .col-sm-6.text-right {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+    .content-header .col-sm-6.text-right .breadcrumb {
+        justify-content: flex-start;
+        flex-basis: 100%;
+    }
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.main-footer {
+    background: #fff;
+    padding: 15px 20px;
+    border-top: 1px solid #e9ecef;
+    color: #858796;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.main-footer a {
+    color: #1a2332;
+}
+
+.main-footer a:hover {
+    color: #4e73df;
+    text-decoration: none;
+}
+
+/* ========================================
+   DESKTOP SIDEBAR BEHAVIOR (>=769px)
+   ======================================== */
+
+/* Expanded state - full width */
+@media (min-width: 769px) {
+    .content-wrapper {
+        margin-left: var(--sidebar-width);
+        transition: margin-left var(--transition-speed) ease;
+    }
+
+    .main-sidebar {
+        width: var(--sidebar-width);
+    }
+
+    /* Collapsed state - icon only */
+    body.sidebar-collapse .content-wrapper {
+        margin-left: var(--sidebar-collapsed);
+    }
+
+    body.sidebar-collapse .main-sidebar {
+        width: var(--sidebar-collapsed);
+    }
+
+    /* Hide text labels in collapsed state */
+    body.sidebar-collapse .main-sidebar .brand-text,
+    body.sidebar-collapse .main-sidebar .user-panel .info,
+    body.sidebar-collapse .main-sidebar .nav-sidebar > .nav-item > .nav-link p,
+    body.sidebar-collapse .main-sidebar .nav-treeview,
+    body.sidebar-collapse .main-sidebar .nav-link .right {
+        display: none !important;
+        opacity: 0;
+    }
+
+    body.sidebar-collapse .main-sidebar .nav-link {
+        justify-content: center;
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
+    body.sidebar-collapse .main-sidebar .brand-link {
+        padding-left: 8px;
+        padding-right: 8px;
+        justify-content: center;
+    }
+
+    body.sidebar-collapse .main-sidebar .brand-link > a {
+        display: none;
+    }
+
+    body.sidebar-collapse .main-sidebar .user-panel {
+        justify-content: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    body.sidebar-collapse .main-sidebar .user-panel .image {
+        margin: 0 auto;
+    }
+
+    /* Ensure submenus don't show in collapsed state */
+    body.sidebar-collapse .main-sidebar .nav-treeview {
+        display: none !important;
+    }
+
+    /* Menu items should not show text on hover in collapsed state */
+    body.sidebar-collapse .main-sidebar .nav-link p {
+        display: none !important;
+    }
+}
+
+/* ========================================
+   MOBILE SIDEBAR BEHAVIOR (<=768px)
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Navbar hamburger always visible */
+    .main-header .navbar-nav .nav-link {
+        display: flex;
+        align-items: center;
+    }
+
+    /* Content takes full width */
+    .content-wrapper {
+        margin-left: 0 !important;
+        transition: margin-left var(--transition-speed) ease;
+    }
+
+    /* Sidebar hidden by default, slides in from left */
+    .main-sidebar {
+        position: fixed;
+        width: 280px !important;
+        transform: translateX(-100%);
+        transition: transform var(--transition-speed) ease;
+        box-shadow: none;
+    }
+
+    /* Sidebar open state */
+    .main-sidebar.sidebar-mobile-open {
+        transform: translateX(0);
+        box-shadow: 6px 0 24px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Show all content when open */
+    .main-sidebar.sidebar-mobile-open .brand-text,
+    .main-sidebar.sidebar-mobile-open .user-panel .info {
+        display: inline-block !important;
+    }
+
+    .main-sidebar.sidebar-mobile-open .nav-sidebar > .nav-item > .nav-link p,
+    .main-sidebar.sidebar-mobile-open .nav-link .right {
+        display: inline !important;
+    }
+
+    .main-sidebar.sidebar-mobile-open .nav-treeview {
+        display: block !important;
+    }
+
+    .main-sidebar.sidebar-mobile-open .nav-link {
+        justify-content: flex-start;
+        margin-left: 8px;
+        margin-right: 8px;
+    }
+
+    .main-sidebar.sidebar-mobile-open .brand-link {
+        padding-left: 20px;
+        padding-right: 20px;
+        justify-content: flex-start;
+    }
+
+    .main-sidebar.sidebar-mobile-open .brand-link > a {
+        display: flex;
+    }
+
+    .main-sidebar.sidebar-mobile-open .user-panel {
+        justify-content: flex-start;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    /* Content header adjustments */
+    .content-header {
+        padding: 12px 0;
+    }
+
+    .content-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .content-header .breadcrumb {
+        font-size: 0.75rem;
+    }
+
+    /* Container padding */
+    .container-fluid {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+/* ========================================
+   VERY SMALL SCREENS (<=480px)
+   ======================================== */
+
+@media (max-width: 480px) {
+    .main-sidebar {
+        width: 260px !important;
+    }
+
+    .content-header h1 {
+        font-size: 1rem;
+    }
+}
+
+/* ========================================
+   HELPER - No overlap, full width content
+   ======================================== */
+.content {
+    flex: 1;
+    width: 100%;
+}
+
+.container-fluid {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+/* Fix for any potential overlapping issues */
+section.content {
+    min-height: 200px;
+    width: 100%;
+}

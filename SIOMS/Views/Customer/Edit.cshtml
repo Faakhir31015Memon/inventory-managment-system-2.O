@@ -1,0 +1,288 @@
+@model SIOMS.Models.Customer
+@{
+    ViewData["Title"] = "Edit Customer";
+    ViewData["Subtitle"] = "Update customer information";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <a asp-controller="Customer" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to Customers
+    </a>
+}
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css" />
+    <style>
+        .iti {
+            width: 100%;
+        }
+        .iti__flag-container {
+            z-index: 10;
+        }
+        .phone-input-wrapper {
+            position: relative;
+        }
+        .phone-feedback.text-danger {
+            color: #dc3545 !important;
+        }
+        .phone-feedback.text-success {
+            color: #198754 !important;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+    </style>
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Edit Customer</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Customer" asp-action="Edit" method="post" id="customerForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        
+                        @if (TempData["Error"] != null)
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        }
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label asp-for="Name" class="form-label">Customer Name *</label>
+                                <input asp-for="Name" class="form-control" required>
+                                <span asp-validation-for="Name" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Phone" class="form-label">Phone Number</label>
+                                @await Html.PartialAsync("_PhoneInput", Model?.Phone, new ViewDataDictionary(ViewData) {
+                                    { "PhoneFieldName", "Phone" },
+                                    { "PhonePlaceholder", "Enter phone number" },
+                                    { "PhoneRequired", false }
+                                })
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label">Email Address</label>
+                                <input asp-for="Email" type="email" class="form-control">
+                                <span asp-validation-for="Email" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="Address" class="form-label">Address<small> (optional)</small></label>
+                            <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="City" class="form-label">City</label>
+                                <input asp-for="City" class="form-control">
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="CustomerType" class="form-label">Customer Type</label>
+                                <select asp-for="CustomerType" class="form-select">
+                                    <option value="Regular">Regular</option>
+                                    <option value="VIP">VIP</option>
+                                    <option value="Wholesale">Wholesale</option>
+                                </select>
+                                <span asp-validation-for="CustomerType" class="text-danger small"></span>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label d-block">Account Status</label>
+                                <div class="form-check form-switch d-flex align-items-center mt-2">
+                                    <input asp-for="IsActive" class="form-check-input me-2" style="width: 2.5em; height: 1.4em;" role="switch">
+                                    <label asp-for="IsActive" class="form-check-label mb-0">Active Customer</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Created Date</label>
+                                <p class="form-control-plaintext">@Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="Customer" asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save me-2"></i> Update Customer
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initializePhoneInput('Phone', false);
+            initializeFormValidation('customerForm');
+        });
+
+        function initializePhoneInput(inputId, isRequired) {
+            var phoneInput = document.querySelector('#' + inputId);
+            if (!phoneInput || typeof window.intlTelInput !== 'function') return;
+
+            var iti = window.intlTelInput(phoneInput, {
+                initialCountry: 'pk',
+                preferredCountries: ['pk', 'us', 'gb', 'ae', 'in', 'sa', 'ca', 'au'],
+                separateDialCode: true,
+                utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js',
+                autoPlaceholder: 'polite',
+                formatOnDisplay: true,
+                allowDropdown: true,
+                nationalMode: false
+            });
+
+            phoneInput._iti = iti;
+
+            function validatePhone() {
+                var value = phoneInput.value.trim();
+                var feedback = document.querySelector('#' + inputId + 'Feedback');
+                
+                if (value === '') {
+                    phoneInput.classList.remove('is-invalid', 'is-valid');
+                    if (feedback) feedback.textContent = '';
+                    return true;
+                }
+
+                if (iti.isValidNumber()) {
+                    phoneInput.classList.remove('is-invalid');
+                    phoneInput.classList.add('is-valid');
+                    if (feedback) {
+                        feedback.textContent = '✓ Valid phone number';
+                        feedback.className = 'phone-feedback small mt-1 text-success';
+                    }
+                    return true;
+                } else {
+                    phoneInput.classList.remove('is-valid');
+                    phoneInput.classList.add('is-invalid');
+                    if (feedback) {
+                        feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                        feedback.className = 'phone-feedback small mt-1 text-danger';
+                    }
+                    return false;
+                }
+            }
+
+            // Restrict input to digits only
+            phoneInput.addEventListener('keypress', function(e) {
+                var char = String.fromCharCode(e.which);
+                if (!/[\d+]/.test(char) && e.which !== 8 && e.which !== 46 && e.which !== 37 && e.which !== 39) {
+                    e.preventDefault();
+                }
+            });
+
+            // Prevent paste of non-numeric characters
+            phoneInput.addEventListener('paste', function(e) {
+                var pasted = (e.clipboardData || window.clipboardData).getData('text');
+                var cleaned = pasted.replace(/[^0-9+]/g, '');
+                if (cleaned !== pasted) {
+                    e.preventDefault();
+                    var start = this.selectionStart;
+                    var end = this.selectionEnd;
+                    var value = this.value;
+                    this.value = value.substring(0, start) + cleaned + value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + cleaned.length;
+                    var event = new Event('input', { bubbles: true });
+                    this.dispatchEvent(event);
+                }
+            });
+
+            phoneInput.addEventListener('blur', function() {
+                if (iti.isValidNumber()) {
+                    this.value = iti.getNumber();
+                }
+                validatePhone();
+            });
+
+            phoneInput.addEventListener('input', function() {
+                phoneInput.classList.remove('is-invalid', 'is-valid');
+                var feedback = document.querySelector('#' + inputId + 'Feedback');
+                if (feedback) feedback.textContent = '';
+            });
+
+            phoneInput.addEventListener('countrychange', function() {
+                validatePhone();
+            });
+
+            if (phoneInput.value.trim()) {
+                setTimeout(validatePhone, 500);
+            }
+
+            return iti;
+        }
+
+        function initializeFormValidation(formId) {
+            var form = document.getElementById(formId);
+            if (!form) return;
+
+            form.addEventListener('submit', function(e) {
+                var phoneInput = document.querySelector('#Phone');
+                var submitBtn = document.getElementById('submitBtn');
+                
+                if (phoneInput && phoneInput._iti) {
+                    var iti = phoneInput._iti;
+                    var value = phoneInput.value.trim();
+                    
+                    if (value !== '' && !iti.isValidNumber()) {
+                        e.preventDefault();
+                        phoneInput.focus();
+                        var feedback = document.querySelector('#PhoneFeedback');
+                        if (feedback) {
+                            feedback.textContent = 'Please enter a valid phone number for the selected country.';
+                            feedback.className = 'phone-feedback small mt-1 text-danger';
+                        }
+                        phoneInput.classList.add('is-invalid');
+                        return false;
+                    }
+                    
+                    if (value !== '' && iti.isValidNumber()) {
+                        phoneInput.value = iti.getNumber();
+                    }
+                }
+                
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+                    submitBtn.disabled = true;
+                }
+            });
+        }
+    </script>
+}
